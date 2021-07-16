@@ -42,8 +42,10 @@ Qin ToDo のサンプル
 pipenv --python 3.9
 ```
 
+<!-- Pipfile に書いてあるパッケージをインストールする -->
+
 ```shell
-pipenv install fastapi uvicorn SQLAlchemy graphene graphene-sqlalchemy
+pipenv install --dev
 ```
 
 <!-- Pillow, graphene-file-upload -->
