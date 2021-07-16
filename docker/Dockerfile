@@ -4,27 +4,10 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
 RUN \
-  mkdir src && \
+  mkdir workspace && \
   # pip自体のアップグレード
   pip install --upgrade pip && \
-  pip install \
-  # linter,formatterのインストール
-  flake8 \
-  yapf \
-  # ライブラリのインストール
-  fastapi \
-  uvicorn \
-  SQLAlchemy \
-  graphene \
-  graphene-sqlalchemy \
-  # 周辺ツール
-  passlib[bcrypt] \
-  python-jose \
-  python-multipart \
-  alembic \
-  python-decouple \
-  psycopg2-binary \
-  # ダッシュボードの導入
-  fastapi-admin
+  # requirements.txtからパッケージをインストール
+  pip install -r requirements.txt
 
-WORKDIR /src
+WORKDIR /workspace
