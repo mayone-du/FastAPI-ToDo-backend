@@ -8,6 +8,34 @@ Qin ToDo のサンプル
 - GraphQL
 - Docker
 
+### インストールしているパッケージ一覧
+
+<!-- linter,formatterのインストール -->
+
+- flake8
+- yapf
+
+<!-- ライブラリのインストール -->
+
+- fastapi
+- uvicorn
+- SQLAlchemy
+- graphene
+- graphene-sqlalchemy
+
+<!-- 周辺ツール -->
+
+- passlib[bcrypt]
+- python-jose
+- python-multipart
+- alembic
+- python-decouple
+- psycopg2-binary
+
+<!-- ダッシュボードの導入 -->
+
+- fastapi-admin
+
 ## セットアップ
 
 ```shell
