@@ -1,0 +1,16 @@
+version: "3.8"
+services:
+  db:
+    image: postgres
+    env_file:
+      - .env
+  app:
+    build: .
+    depends_on:
+      - db
+    ports:
+      - 8000:8000
+    tty: true
+    stdin_open: true
+    volumes:
+      - .:/src
