@@ -18,8 +18,6 @@ from schemas.schemas import Mutation, Query
 
 app = FastAPI()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
 
 # Dependency
 def get_db():
