@@ -1,7 +1,7 @@
 import graphene
 from graphene_sqlalchemy.fields import SQLAlchemyConnectionField
 
-from task import CreateTask, TaskNode
+from task import CreateTask, DeleteTask, TaskNode, UpdateTask
 
 
 class Query(graphene.ObjectType):
@@ -18,4 +18,6 @@ class Query(graphene.ObjectType):
 
 
 class Mutation(graphene.ObjectType):
-    create_new_post = CreateTask.Field()
+    create_task = CreateTask.Field()
+    update_task = UpdateTask.Field()
+    delete_task = DeleteTask.Field()

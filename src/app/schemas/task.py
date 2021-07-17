@@ -52,3 +52,12 @@ class UpdateTask(graphene.ClientIDMutation):
     @staticmethod
     def mutate(root, info, **kwargs):
         pass
+
+
+class DeleteTask(graphene.ClientIDMutation):
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    @staticmethod
+    def mutate(root, info):
+        pass
