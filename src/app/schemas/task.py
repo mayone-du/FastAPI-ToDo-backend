@@ -1,12 +1,9 @@
 import database
 import graphene
-from graphene import relay
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from graphql_relay import from_global_id
 from models import task
 from pydantic import BaseModel
-
-db = database.db_session.session_factory()
 
 
 class TaskSchema(BaseModel):
@@ -35,9 +32,9 @@ class CreateTask(graphene.Mutation):
                               is_done=False)
         db_task = task.TaskModel(title=new_task.title,
                                  content=new_task.content)
-        db.add(db_task)
-        db.commit()
-        db.refresh(db_task)
+        database.db.add(db_task)
+        database.db.commit()
+        database.db.refresh(db_task)
         ok = True
         return CreateTask(ok=ok)
 

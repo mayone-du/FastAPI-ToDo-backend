@@ -1,12 +1,8 @@
-from fastapi import FastAPI
-
-import database
-
-app = FastAPI()
-
 import graphene
+from fastapi import FastAPI
 from starlette.graphql import GraphQLApp
 
+import database
 from schemas.schemas import Mutation, Query
 
 app = FastAPI()
@@ -22,10 +18,13 @@ def get_db():
 
 
 app.add_route(
-    "/", GraphQLApp(schema=graphene.Schema(query=Query, mutation=Mutation)))
+    "/graphql",
+    GraphQLApp(schema=graphene.Schema(query=Query, mutation=Mutation)))
 
 
 @app.on_event("startup")
 async def startup_event():
+    # テーブルのリセット
+    # database.Base.metadata.drop_all(bind=database.engine)
     # 起動時にテーブルを作成
     database.Base.metadata.create_all(bind=database.engine)

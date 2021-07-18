@@ -13,7 +13,8 @@ from app.schemas.user import User
 from schemas.schemas import Mutation, Query
 
 app.add_route(
-    "/", GraphQLApp(schema=graphene.Schema(query=Query, mutation=Mutation)))
+    "/graphql",
+    GraphQLApp(schema=graphene.Schema(query=Query, mutation=Mutation)))
 
 
 @app.post("/token", response_model=Token)
