@@ -28,3 +28,9 @@ async def startup_event():
     # database.Base.metadata.drop_all(bind=database.engine)
     # 起動時にテーブルを作成
     database.Base.metadata.create_all(bind=database.engine)
+
+
+# APIサーバシャットダウン時にDBセッションを削除
+@app.on_event("shutdown")
+def shutdown_event():
+    database.db_session.remove()
