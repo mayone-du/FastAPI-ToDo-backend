@@ -1,15 +1,28 @@
-from datetime import datetime, timedelta
 from typing import Optional
 
+import graphene
+from graphene_sqlalchemy.types import SQLAlchemyObjectType
+from models import user
 from pydantic import BaseModel
 
 
-class User(BaseModel):
+class UserSchema(BaseModel):
     username: str
     email: Optional[str] = None
-    full_name: Optional[str] = None
-    disabled: Optional[bool] = None
+    # disabled: Optional[bool] = None
 
 
-class UserInDB(User):
+class UserNode(SQLAlchemyObjectType):
+    class Meta:
+        model = user.UserModel
+        interfaces = (graphene.relay.Node, )
+
+
+class UserInDBSchema(UserSchema):
     hashed_password: str
+
+
+class UserInDBNode(SQLAlchemyObjectType):
+    class Meta:
+        model = user.UserModel
+        interfaces = (graphene.relay.Node, )

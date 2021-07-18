@@ -1,16 +1,10 @@
-from pathlib import Path
-from sys import path
-
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import FastAPI
 
 import database
 
 app = FastAPI()
 
-from typing import List
-
 import graphene
-from fastapi.security import OAuth2PasswordBearer
 from starlette.graphql import GraphQLApp
 
 from schemas.schemas import Mutation, Query
@@ -29,3 +23,9 @@ def get_db():
 
 app.add_route(
     "/", GraphQLApp(schema=graphene.Schema(query=Query, mutation=Mutation)))
+
+
+@app.on_event("startup")
+async def startup_event():
+    # 起動時にテーブルを作成
+    database.Base.metadata.create_all(bind=database.engine)

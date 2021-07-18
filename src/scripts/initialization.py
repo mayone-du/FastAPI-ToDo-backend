@@ -1,12 +1,14 @@
-from sys import path
+# main.pyの起動時のイベントハンドラーでテーブルの初期化が可能になった為不要になった
 
-path.append('../')
+# from sys import path
 
-import app.models
-from app.database import Base, engine
+# path.append('../')
 
-# from app.models.user import UserModel
+# import app.models
+# from app.database import Base, engine
 
-print('initialization...')
-Base.metadata.drop_all(bind=engine)
-Base.metadata.create_all(bind=engine)
+# # from app.models.user import UserModel
+
+# print('initialization...')
+# Base.metadata.drop_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
