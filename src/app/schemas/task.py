@@ -65,4 +65,5 @@ class DeleteTask(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info):
+        ok = True
         return DeleteTask(ok=ok)
