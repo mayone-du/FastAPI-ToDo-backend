@@ -7,8 +7,5 @@ class UserModel(database.Base):
 
     id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
     username = Column(String(255))
-    email = Column(String(255))
+    email = Column(String(255), unique=True)
     password = Column(String)
-
-    # def __init__(self, name: str):
-    #     self.name = name
