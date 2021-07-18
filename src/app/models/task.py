@@ -5,6 +5,7 @@ from sqlalchemy.sql import func
 
 class TaskModel(database.Base):
     __tablename__ = "task"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String)

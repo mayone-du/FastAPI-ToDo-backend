@@ -1,15 +1,14 @@
 from datetime import datetime, timedelta
 from typing import Optional
 
-from app.database import db_session
-# from app.main import app
+import bcrypt
 from app.schemas.user import UserSchema
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
-from settings.envs import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
+from settings.envs import ALGORITHM, SECRET_KEY
 
 
 class Token(BaseModel):
@@ -24,6 +23,12 @@ class TokenData(BaseModel):
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+# パスワードをハッシュ化
+def hash_password(password: str):
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    return hashed_password
 
 
 # プレーンテキストのパスワードとハッシュ化されたパスワードを検証
@@ -54,6 +59,7 @@ def authenticate_user(db, email: str, password: str):
 # アクセストークンの作成
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
+    # トークンの有効期限があればそちらで設定（消して良いかも）
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
@@ -64,25 +70,31 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 
 # トークンからユーザーを取得
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
+        credentials_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
         # トークンからユーザーネームを取得し、存在しなかったらHTTPエラーを返す
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-        token_data = TokenData(email=email)
+        # payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        # print(payload)
+        print('hogeeeeeeeeeeeeeeeeeeeeee')
+        # TODO JWTの取得とかはOK get_userの引数とかをチェック
+        #     email: str = payload.get("email")
+        #     print(email)
+        #     if email is None:
+        #         raise credentials_exception
+        #     token_data = TokenData(email=email)
+        return False
     except JWTError:
         raise credentials_exception
-    user = get_user(db_session, email=token_data.email)
-    if user is None:
-        raise credentials_exception
-    return user
+    # user = get_user(db_session, email=token_data.email)
+    # # user = db_session.query(UserModel).filter(email=email).first()
+    # if user is None:
+    #     raise credentials_exception
+    # return user
 
 
 async def get_current_active_user(
