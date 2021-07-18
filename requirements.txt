@@ -11,7 +11,8 @@ click==8.0.1
 ecdsa==0.17.0
 fastapi==0.66.0
 fastapi-admin==1.0.2
-graphene==2.1.8
+flake8==3.9.2
+graphene==2.1.9
 graphene-sqlalchemy==2.3.0
 graphql-core==2.3.2
 graphql-relay==2.0.1
@@ -19,15 +20,19 @@ greenlet==1.1.0
 h11==0.12.0
 hiredis==2.0.0
 httptools==0.2.0
-iso8601==0.1.14
+iso8601==0.1.16
 Jinja2==3.0.1
 MarkupSafe==2.0.1
+mccabe==0.6.1
 passlib==1.7.4
 pendulum==2.1.2
 promise==2.3
+psycopg2-binary==2.9.1
 pyasn1==0.4.8
+pycodestyle==2.7.0
 pycparser==2.20
 pydantic==1.8.2
+pyflakes==2.3.1
 pypika-tortoise==0.1.1
 python-dateutil==2.8.2
 python-decouple==3.4
@@ -49,3 +54,4 @@ uvicorn==0.14.0
 uvloop==0.15.3
 watchgod==0.7
 websockets==9.1
+yapf==0.31.0

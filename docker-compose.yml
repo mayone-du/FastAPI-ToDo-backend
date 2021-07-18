@@ -13,4 +13,4 @@ services:
     tty: true
     stdin_open: true
     volumes:
-      - ../:/workspace
+      - .:/workspace

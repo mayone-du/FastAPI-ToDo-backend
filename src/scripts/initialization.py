@@ -1,9 +1,12 @@
-from app.database import Base
+from sys import path
 
+path.append('../')
 
-def init():
-    print('initialization...')
-    Base.create_all()
+import app.models
+from app.database import Base, engine
 
+# from app.models.user import UserModel
 
-init()
+print('initialization...')
+Base.metadata.drop_all(bind=engine)
+Base.metadata.create_all(bind=engine)

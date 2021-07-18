@@ -1,8 +1,12 @@
-from settings.envs import SQLALCHEMY_DATABASE_URL
+from sys import path
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.scoping import scoped_session
+
+path.append('../')
+from settings.envs import SQLALCHEMY_DATABASE_URL
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 db_session = scoped_session(

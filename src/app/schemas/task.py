@@ -33,31 +33,36 @@ class CreateTask(graphene.Mutation):
         new_task = TaskSchema(title=kwargs.get('title'),
                               content=kwargs.get('content'),
                               is_done=False)
-        db_post = task.TaskModel(title=new_task.title,
+        db_task = task.TaskModel(title=new_task.title,
                                  content=new_task.content)
-        db.add(db_post)
+        db.add(db_task)
         db.commit()
-        db.refresh(db_post)
+        db.refresh(db_task)
         ok = True
         return CreateTask(ok=ok)
 
 
-class UpdateTask(graphene.ClientIDMutation):
+class UpdateTask(graphene.Mutation):
     class Arguments:
         id = graphene.ID(required=True)
         title = graphene.String(required=True)
         content = graphene.String(required=True)
         is_done = graphene.Boolean(required=True)
 
+    ok = graphene.Boolean()
+
     @staticmethod
     def mutate(root, info, **kwargs):
-        pass
+        ok = True
+        return UpdateTask(ok=ok)
 
 
-class DeleteTask(graphene.ClientIDMutation):
+class DeleteTask(graphene.Mutation):
     class Arguments:
         id = graphene.ID(required=True)
 
+    ok = graphene.Boolean()
+
     @staticmethod
     def mutate(root, info):
-        pass
+        return DeleteTask(ok=ok)

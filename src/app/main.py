@@ -2,7 +2,6 @@ from pathlib import Path
 from sys import path
 
 from fastapi import Depends, FastAPI, HTTPException
-from scripts.initialization import init
 
 import database
 

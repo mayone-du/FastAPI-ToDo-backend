@@ -1,7 +1,7 @@
 import graphene
 from graphene_sqlalchemy.fields import SQLAlchemyConnectionField
 
-from task import CreateTask, DeleteTask, TaskNode, UpdateTask
+from .task import CreateTask, DeleteTask, TaskNode, UpdateTask
 
 
 class Query(graphene.ObjectType):
