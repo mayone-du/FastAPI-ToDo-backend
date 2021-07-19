@@ -5,6 +5,7 @@ import graphene
 from graphene_sqlalchemy.types import SQLAlchemyObjectType
 from models import user
 from pydantic import BaseModel
+from ulid import ULID
 
 
 class UserSchema(BaseModel):
@@ -43,7 +44,7 @@ class CreateUser(graphene.Mutation):
     def mutate(root, info, **kwargs):
         try:
             from auth.auth import hash_password
-            new_user = user.UserModel(username=kwargs.get('username'),
+            new_user = user.UserModel(ulid=str(ULID()), username=kwargs.get('username'),
                                     email=kwargs.get('email'),
                                     # ユーザーが登録したパスワードをハッシュ化して保存
                                     password=hash_password(kwargs.get('password')))

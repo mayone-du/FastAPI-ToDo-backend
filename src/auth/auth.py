@@ -40,7 +40,7 @@ def verify_password(plain_password, hashed_password):
     # return pwd_context.verify(plain_password, hashed_password)
 
 
-# パスワードのハッシュを取得
+# パスワードのハッシュ値を取得 毎回計算される値が変わるため、使い所がわかない。消す可能性あり
 def get_password_hash(password):
     return pwd_context.hash(password)
 

@@ -6,7 +6,7 @@ from graphql_relay import from_global_id
 from models.user import UserModel
 
 from .task import CreateTask, DeleteTask, TaskNode, UpdateTask
-from .token import CreateToken
+from .token import CreateAccessToken
 from .user import CreateUser, UserNode
 
 
@@ -56,5 +56,5 @@ class Mutation(graphene.ObjectType):
     delete_task = DeleteTask.Field()
 
     # auth
-    create_token = CreateToken.Field()
+    create_token =  CreateAccessToken.Field()
     # get_access_token = 
