@@ -1,6 +1,5 @@
 from typing import Optional
 
-import bcrypt
 import database
 import graphene
 from graphene_sqlalchemy.types import SQLAlchemyObjectType
@@ -42,13 +41,17 @@ class CreateUser(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, **kwargs):
-        # ユーザーが登録したパスワードをハッシュ化
-        hashed_password = bcrypt.hashpw(kwargs.get('password').encode('utf-8'), bcrypt.gensalt())
-        new_user = user.UserModel(username=kwargs.get('username'),
-                                  email=kwargs.get('email'),
-                                  password=hashed_password)
-        database.db.add(new_user)
-        database.db.commit()
-        database.db.refresh(new_user)
-        ok = True
-        return CreateUser(ok=ok)
+        try:
+            from auth.auth import hash_password
+            new_user = user.UserModel(username=kwargs.get('username'),
+                                    email=kwargs.get('email'),
+                                    # ユーザーが登録したパスワードをハッシュ化して保存
+                                    password=hash_password(kwargs.get('password')))
+            database.db.add(new_user)
+            database.db.commit()
+            database.db.refresh(new_user)
+            ok = True
+            return CreateUser(ok=ok)
+        except:
+            database.db.rollback()
+            raise
