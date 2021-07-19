@@ -1,10 +1,12 @@
+from datetime import datetime, timedelta
+
 import graphene
 from app.models.user import UserModel
 from app.schemas.user import UserNode
-from auth.auth import (create_access_token, get_password_hash, hash_password,
-                       verify_password)
+from auth.auth import verify_password
 from fastapi import HTTPException
-from ulid import ULID
+from jose import JWTError, jwt
+from settings.envs import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 
 
 class CreateAccessToken(graphene.Mutation):
@@ -19,25 +21,28 @@ class CreateAccessToken(graphene.Mutation):
     def mutate(root, info, **kwargs):
         input_email = kwargs.get('email')
         input_password = kwargs.get('password')
-        # emailからそのユーザーのパスワードを取得
-        registered_password = UserNode.get_query(info).filter(UserModel.email==input_email).first().password
-        ulid = UserNode.get_query(info).filter(UserModel.email==input_email).first().ulid
+        # emailからそのユーザーのインスタンスを取得
+        user =  UserNode.get_query(info).filter(UserModel.email==input_email).first()
+        # 登録済みのハッシュ化されたパスワード
+        registered_password = user.password
+        ulid = user.ulid
         print(ulid)
-        # パスワードが一致するか検証
+        #TODO: パスワードが一致するか検証
         if verify_password(input_password, registered_password):
             print('ok')
         else:
             print('out! password is no-match')
             raise HTTPException(status_code=401)
-        # ulid = UserNode.get_query(info).filter(UserModel.password==hash_password(input_password)).first().id
-        
-        # ulid = UserNode.get_query(info).filter(UserModel.email==email, UserModel.password==registered_password).first().id
-        # print(ulid)
+
         # ulid、トークンタイプ、有効期限をもとにJWTを発行
-        # user_data = {'ulid': kwargs.get('ulid'), 'password': hash_password(kwargs.get('password')).decode()}
-        user_data = {'ulid': 1, 'type': 'access_token'}
-        access_token = create_access_token(data=user_data)
-      
+        token_data = {
+                        'ulid': ulid,
+                        # access_token or refresh_token
+                        'type': 'access_token', 
+                        # 有効期限をUTCタイムスタンプ形式で設定
+                        'exp': datetime.utcnow() + timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+                    }
+        access_token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
         return CreateAccessToken(access_token=access_token)
 
 
@@ -46,4 +51,11 @@ class CreateRefreshToken(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info):
-        data = {'token_type': 'refresh_token'}
+        ulid = ''
+        data = {
+                    'ulid': ulid ,
+                    'token_type': 'refresh_token',
+                    'exp': datetime.utcnow() + timedelta(days=7)
+                }
+        refresh_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+        return CreateRefreshToken(refresh_token=refresh_token)

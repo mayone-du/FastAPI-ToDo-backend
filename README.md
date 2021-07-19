@@ -70,12 +70,21 @@ docker-compose exec app bash
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
+```shell
+openssl rand -hex 32
+# SECRET_KEYを取得
+```
+
 ```/.env
 POSTGRES_USER=xxx
 POSTGRES_PASSWORD=xxx
 POSTGRES_SERVER=yy
 POSTGRES_PORT=0000
 POSTGRES_DB=zzzz
+
+SECRET_KEY=xxxx
+ALGORITHM=xxxx
+ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
 ## DB の初期化について

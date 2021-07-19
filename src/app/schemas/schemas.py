@@ -1,9 +1,10 @@
 import graphene
-from auth.auth import get_current_user
 from fastapi import HTTPException, status
 from graphene_sqlalchemy.fields import SQLAlchemyConnectionField
 from graphql_relay import from_global_id
+from jose import JWTError, jwt
 from models.user import UserModel
+from settings.envs import ALGORITHM, SECRET_KEY
 
 from .task import CreateTask, DeleteTask, TaskNode, UpdateTask
 from .token import CreateAccessToken
@@ -18,16 +19,17 @@ class Query(graphene.ObjectType):
 
 
     def resolve_current_user(self, info):
-        # headersのauthorizationからjwtを取得
         try:
+            # headersのauthorizationからjwtを取得
             headers = dict(info.context['request']['headers'])
-            jwt = headers[b'authorization'].decode()[7:] # Bearer の文字列を半角空白含めて削除
-            user = get_current_user(jwt)
-            print(user)
-            return UserNode.get_query(info).first()
-            return user
-        except:
-            return HTTPException(
+            token = headers[b'authorization'].decode()[7:] # Bearer の文字列を半角空白含めて削除
+            # トークンの内容を取得
+            payload: dict = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            ulid = payload.get('ulid')
+            # ulidに紐づくユーザーを返却
+            return UserNode.get_query(info).filter(UserModel.ulid==ulid).first()
+        except JWTError:
+            raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Could not validate credentials",
                 headers={"WWW-Authenticate": "Bearer"},
