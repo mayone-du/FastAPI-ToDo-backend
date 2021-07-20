@@ -1,13 +1,12 @@
 from datetime import datetime, timedelta
 
 import graphene
+from auth.libs import verify_password
+from auth.models.user import UserModel
+from auth.schemas.user import UserNode
 from fastapi import HTTPException
 from jose import JWTError, jwt
-from libs import verify_password
-from models.user import UserModel
 from settings.envs import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
-
-from schemas.user import UserNode
 
 
 # アクセストークンの発行 DBに保存はしない。
@@ -67,11 +66,11 @@ class CreateRefreshToken(graphene.Mutation):
         return CreateRefreshToken(refresh_token=refresh_token)
 
 
-# 有効期限の切れたアクセストークンを再発行し、リフレッシュトークンも新しいものに更新する
-class UpdateTokens(graphene.Mutation):
-    pass
+# # 有効期限の切れたアクセストークンを再発行し、リフレッシュトークンも新しいものに更新する
+# class UpdateTokens(graphene.Mutation):
+#     pass
 
 
-# リフレッシュトークンの削除？
-class DeleteRefreshToken(graphene.Mutation):
-    pass
+# # リフレッシュトークンの削除？
+# class DeleteRefreshToken(graphene.Mutation):
+#     pass
