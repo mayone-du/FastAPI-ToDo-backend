@@ -1,9 +1,9 @@
 from typing import Optional
 
 import graphene
-from app.database import db
-from auth.models.user import UserModel
+from database.database import db
 from graphene_sqlalchemy.types import SQLAlchemyObjectType
+from models.user import UserModel
 from pydantic import BaseModel
 from ulid import ULID
 
@@ -32,7 +32,7 @@ class CreateUser(graphene.Mutation):
     @staticmethod
     def mutate(root, info, **kwargs):
         try:
-            from auth.libs import hash_password
+            from libs.auth import hash_password
             new_user = UserModel(ulid=str(ULID()), username=kwargs.get('username'),
                                     email=kwargs.get('email'),
                                     # ユーザーが登録したパスワードをハッシュ化して保存

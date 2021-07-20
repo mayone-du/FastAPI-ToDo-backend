@@ -1,15 +1,9 @@
-from sys import path
-
 import graphene
 from fastapi import FastAPI
 from starlette.graphql import GraphQLApp
 
-from database import Base, db_session, engine
+from database.database import Base, db_session, engine
 from schemas.schemas import Mutation, Query
-
-path.append('../')
-
-from models.user import UserModel
 
 # Baseの内容を反映させるにはここでUserModelをimportする必要あり？
 
@@ -32,7 +26,7 @@ app.add_route(
 @app.on_event("startup")
 async def startup_event():
     # テーブルのリセット
-    Base.metadata.drop_all(bind=engine)
+    # Base.metadata.drop_all(bind=engine)
     # 起動時にテーブルを作成
     Base.metadata.create_all(bind=engine)
 

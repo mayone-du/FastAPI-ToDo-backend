@@ -1,10 +1,10 @@
-from sys import path
+# from sys import path
 
+from database.database import Base, engine
 from sqlalchemy import Column, String
 
-path.append('../')
+# path.append('../')
 
-from database import Base, engine
 
 
 class UserModel(Base):

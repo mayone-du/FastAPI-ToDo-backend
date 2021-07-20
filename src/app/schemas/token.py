@@ -1,15 +1,16 @@
 from datetime import datetime, timedelta
 
 import graphene
-from app.database import db
-from auth.libs import verify_password
-from auth.models.token import RefreshTokenModel
-from auth.models.user import UserModel
-from auth.schemas.user import UserNode
+from database.database import db
 from fastapi import HTTPException
 from jose import JWTError, jwt
+from libs.auth import verify_password
+from models.token import RefreshTokenModel
+from models.user import UserModel
 from pydantic import BaseModel
 from settings.envs import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
+
+from .user import UserNode
 
 
 class RefreshTokenSchema(BaseModel):
