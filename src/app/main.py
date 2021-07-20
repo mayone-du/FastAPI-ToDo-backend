@@ -2,20 +2,18 @@ import graphene
 from fastapi import FastAPI
 from starlette.graphql import GraphQLApp
 
-import database
+from database import Base, db_session, engine
 from schemas.schemas import Mutation, Query
 
 app = FastAPI()
 
-
-# Dependency
-def get_db():
-    db = database.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
+# # Dependency
+# def get_db():
+#     db = database.SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
 
 app.add_route(
     "/graphql",
@@ -25,12 +23,12 @@ app.add_route(
 @app.on_event("startup")
 async def startup_event():
     # テーブルのリセット
-    # database.Base.metadata.drop_all(bind=database.engine)
+    Base.metadata.drop_all(engine)
     # 起動時にテーブルを作成
-    database.Base.metadata.create_all(bind=database.engine)
+    # Base.metadata.create_all(bind=engine)
 
 
 # APIサーバシャットダウン時にDBセッションを削除
 @app.on_event("shutdown")
 def shutdown_event():
-    database.db_session.remove()
+    db_session.remove()

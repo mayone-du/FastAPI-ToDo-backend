@@ -1,7 +1,8 @@
 import graphene
 from auth.models.user import UserModel
-from auth.schemas.token import CreateAccessToken
+from auth.schemas.token import CreateAccessToken, CreateRefreshToken
 from auth.schemas.user import CreateUser, UserNode
+from database import Base, db, engine
 from fastapi import HTTPException, status
 from graphene_sqlalchemy.fields import SQLAlchemyConnectionField
 from graphql_relay import from_global_id
@@ -52,6 +53,7 @@ class Query(graphene.ObjectType):
     # すべてのタスクを取得
     def resolve_all_tasks(self, info):
         query = TaskNode.get_query(info)
+        Base.metadata.drop_all(bind=engine)
         return query.all()
 
 
@@ -62,5 +64,6 @@ class Mutation(graphene.ObjectType):
     delete_task = DeleteTask.Field()
 
     # auth
-    create_token = CreateAccessToken.Field()
+    create_access_token = CreateAccessToken.Field()
+    create_refresh_token = CreateRefreshToken.Field()
     # get_access_token =

@@ -1,5 +1,5 @@
-import database
 import graphene
+from app.database import db
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from graphql_relay import from_global_id
 from models import task
@@ -27,14 +27,15 @@ class CreateTask(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, **kwargs):
+        #TODO: new_taskは消せるかも
         new_task = TaskSchema(title=kwargs.get('title'),
                               content=kwargs.get('content'),
                               is_done=False)
         db_task = task.TaskModel(title=new_task.title,
                                  content=new_task.content)
-        database.db.add(db_task)
-        database.db.commit()
-        database.db.refresh(db_task)
+        db.add(db_task)
+        db.commit()
+        db.refresh(db_task)
         ok = True
         return CreateTask(ok=ok)
 

@@ -1,10 +1,11 @@
-from app.database import Base
+# from app.database import Base
+from app import database
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.sql import func
 
 
 # リフレッシュトークンのみDBに保存する
-class RefreshTokenModel(Base):
+class RefreshTokenModel(database.Base):
     __tablename__ = "refresh_token"
     __table_args__ = {'extend_existing': True}
 

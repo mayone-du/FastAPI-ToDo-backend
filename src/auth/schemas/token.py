@@ -1,13 +1,19 @@
 from datetime import datetime, timedelta
 
 import graphene
+from app.database import db
 from auth.libs import verify_password
+from auth.models.token import RefreshTokenModel
 from auth.models.user import UserModel
 from auth.schemas.user import UserNode
 from fastapi import HTTPException
 from jose import JWTError, jwt
+from pydantic import BaseModel
 from settings.envs import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 
+
+class RefreshTokenSchema(BaseModel):
+    body: str
 
 # アクセストークンの発行 DBに保存はしない。
 class CreateAccessToken(graphene.Mutation):
@@ -28,7 +34,6 @@ class CreateAccessToken(graphene.Mutation):
         # 登録済みのハッシュ化されたパスワード
         registered_password = user.password
         ulid = user.ulid
-        print(ulid)
         # パスワードが一致しなかったらエラーレスポンスを返す
         if not verify_password(input_password, registered_password):
             # TODO: エラーレスポンスの実装
@@ -63,7 +68,12 @@ class CreateRefreshToken(graphene.Mutation):
             'exp': datetime.utcnow() + timedelta(days=7)
         }
         refresh_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
-        return CreateRefreshToken(refresh_token=refresh_token)
+
+        db_refresh_token = RefreshTokenModel(body='sampel refresh token')
+        db.add(db_refresh_token)
+        db.commit()
+        db.refresh(db_refresh_token)
+        return CreateRefreshToken(refresh_token=db_refresh_token)
 
 
 # # 有効期限の切れたアクセストークンを再発行し、リフレッシュトークンも新しいものに更新する

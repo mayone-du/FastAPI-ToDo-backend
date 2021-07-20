@@ -1,9 +1,9 @@
-import database
+from app.database import Base
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.sql import func
 
 
-class TaskModel(database.Base):
+class TaskModel(Base):
     __tablename__ = "task"
     __table_args__ = {'extend_existing': True}
 
