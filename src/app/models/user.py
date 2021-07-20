@@ -2,13 +2,13 @@ from sys import path
 
 from sqlalchemy import Column, String
 
-path.append('../../')
+path.append('../')
 
-from app.database import Base, engine
+from database import Base, engine
 
 
 class UserModel(Base):
-    __tablename__ = "custom_user"
+    __tablename__ = "app_users"
     __table_args__ = {'extend_existing': True}
     ulid = Column(String, primary_key=True, unique=True)
     username = Column(String(255))
@@ -17,5 +17,3 @@ class UserModel(Base):
     full_name = Column(String(255))
 
     # Base.metadata.create_all(bind=engine)
-
-

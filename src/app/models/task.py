@@ -1,4 +1,4 @@
-from app.database import Base
+from app.database import Base, engine
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.sql import func
 
@@ -12,3 +12,5 @@ class TaskModel(Base):
     content = Column(String(255))
     is_done = Column(Boolean)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Base.metadata.create_all(bind=engine)
