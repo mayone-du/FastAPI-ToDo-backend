@@ -14,8 +14,8 @@ python-decouple = "*"
 python-jose = "*"
 python-multipart = "*"
 passlib = {extras = ["bcrypt"], version = "*"}
-psycopg2-binary = "*"
 python-ulid = "*"
+psycopg2 = "*"
 
 [dev-packages]
 yapf = "*"
