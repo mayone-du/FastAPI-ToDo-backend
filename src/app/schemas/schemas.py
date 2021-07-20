@@ -4,18 +4,18 @@ from fastapi import HTTPException, status
 from graphene_sqlalchemy.fields import SQLAlchemyConnectionField
 from graphql_relay import from_global_id
 from jose import JWTError, jwt
-from models.user import UserModel
+from models.custom_user import CustomUserModel
 from settings.envs import ALGORITHM, SECRET_KEY
 
+from .custom_user import CreateCustomUser, CustomUserNode
 from .task import CreateTask, DeleteTask, TaskNode, UpdateTask
 from .token import CreateAccessToken, CreateRefreshToken
-from .user import CreateUser, UserNode
 
 
 class Query(graphene.ObjectType):
-    current_user = graphene.Field(UserNode)
-    user = graphene.Field(UserNode, id=graphene.NonNull(graphene.ID))
-    all_users = SQLAlchemyConnectionField(UserNode)
+    current_user = graphene.Field(CustomUserNode)
+    user = graphene.Field(CustomUserNode, id=graphene.NonNull(graphene.ID))
+    all_users = SQLAlchemyConnectionField(CustomUserNode)
     all_tasks = SQLAlchemyConnectionField(TaskNode)
 
     def resolve_current_user(self, info):
@@ -30,8 +30,8 @@ class Query(graphene.ObjectType):
                                        algorithms=[ALGORITHM])
             ulid = payload.get('ulid')
             # ulidに紐づくユーザーを返却
-            return UserNode.get_query(info).filter(
-                UserModel.ulid == ulid).first()
+            return CustomUserNode.get_query(info).filter(
+                CustomUserModel.ulid == ulid).first()
         except JWTError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -41,13 +41,13 @@ class Query(graphene.ObjectType):
 
     # idからユーザーを取得
     def resolve_user(self, info, id):
-        query = UserNode.get_query(info)
+        query = CustomUserNode.get_query(info)
         # 受け取ったidと一致するUserオブジェクトを返却
-        return query.filter(UserModel.id == from_global_id(id)[1]).first()
+        return query.filter(CustomUserModel.id == from_global_id(id)[1]).first()
 
     # すべてのユーザーを取得
     def resolve_all_users(self, info):
-        query = UserNode.get_query(info)
+        query = CustomUserNode.get_query(info)
         return query.all()
 
     # すべてのタスクを取得
@@ -57,7 +57,7 @@ class Query(graphene.ObjectType):
 
 
 class Mutation(graphene.ObjectType):
-    create_user = CreateUser.Field()
+    create_user = CreateCustomUser.Field()
     create_task = CreateTask.Field()
     update_task = UpdateTask.Field()
     delete_task = DeleteTask.Field()

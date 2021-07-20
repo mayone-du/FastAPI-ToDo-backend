@@ -3,25 +3,25 @@
 import graphene
 from database.database import db
 from graphene_sqlalchemy.types import SQLAlchemyObjectType
-from models.user import UserModel
+from models.custom_user import CustomUserModel
 from pydantic import BaseModel
 from ulid import ULID
 
 
-class UserSchema(BaseModel):
+class CustomUserSchema(BaseModel):
     username: str
     email: str
     password: str
     # is_active: bool
 
 
-class UserNode(SQLAlchemyObjectType):
+class CustomUserNode(SQLAlchemyObjectType):
     class Meta:
-        model = UserModel
+        model = CustomUserModel
         interfaces = (graphene.relay.Node, )
 
 
-class CreateUser(graphene.Mutation):
+class CreateCustomUser(graphene.Mutation):
     class Arguments:
         username = graphene.String(required=True)
         email = graphene.String(required=True)
@@ -33,22 +33,24 @@ class CreateUser(graphene.Mutation):
     def mutate(root, info, **kwargs):
         try:
             from libs.auth import hash_password
-            new_user = UserModel(ulid=str(ULID()), username=kwargs.get('username'),
+            new_user = CustomUserModel(ulid=str(ULID()), username=kwargs.get('username'),
                                     email=kwargs.get('email'),
                                     # ユーザーが登録したパスワードをハッシュ化して保存
                                     password=hash_password(kwargs.get('password')))
             db.add(new_user)
             db.commit()
-            db.refresh(new_user)
             ok = True
-            return CreateUser(ok=ok)
-            # TODO: エラーハンドリング
+            return CreateCustomUser(ok=ok)
         except:
             db.rollback()
+            # TODO: エラーハンドリング
             raise
+        finally:
+            db.close()
 
 
-class UpdateUser(graphene.Mutation):
+# ユーザー情報の更新
+class UpdateCustomUser(graphene.Mutation):
     class Arguments:
         username = graphene.String(required=True)
 
@@ -59,13 +61,18 @@ class UpdateUser(graphene.Mutation):
         try:
             # TODO: ユーザー情報更新機能の実装
             pass
+            db.add()
+            db.commit()
             ok=True
-            return UpdateUser(ok=ok)
+            return UpdateCustomUser(ok=ok)
         except:
-            pass
+            db.rollback()
+            raise
+        finally:
+            db.close()
 
 
-class DeleteUser(graphene.Mutation):
+class DeleteCustomUser(graphene.Mutation):
     class Arguments:
         id = graphene.ID(required=True)
 
@@ -73,6 +80,10 @@ class DeleteUser(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, **kwargs):
-        pass
-        ok=True
-        return DeleteUser(ok=ok)
+        try:
+            ok=True
+        except:
+            # ok=False
+            raise
+        finally:
+            return DeleteCustomUser(ok=ok)

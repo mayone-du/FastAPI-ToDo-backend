@@ -27,17 +27,19 @@ class CreateTask(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, **kwargs):
-        #TODO: new_taskは消せるかも
-        new_task = TaskSchema(title=kwargs.get('title'),
-                              content=kwargs.get('content'),
-                              is_done=False)
-        db_task = task.TaskModel(title=new_task.title,
-                                 content=new_task.content)
-        db.add(db_task)
-        db.commit()
-        db.refresh(db_task)
-        ok = True
-        return CreateTask(ok=ok)
+        try:
+            db_task = task.TaskModel(title=kwargs.get('title'),
+                                    content=kwargs.get('content'),
+                                    is_done=False)
+            db.add(db_task)
+            db.commit()
+            ok = True
+            return CreateTask(ok=ok)
+        except:
+            db.rollback()
+            raise
+        finally:
+            db.close()
 
 
 class UpdateTask(graphene.Mutation):
@@ -51,8 +53,13 @@ class UpdateTask(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, **kwargs):
-        ok = True
-        return UpdateTask(ok=ok)
+        try:
+            ok = True
+            return UpdateTask(ok=ok)
+        except:
+            raise
+        finally:
+            pass
 
 
 class DeleteTask(graphene.Mutation):
@@ -63,5 +70,11 @@ class DeleteTask(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info):
-        ok = True
-        return DeleteTask(ok=ok)
+        try:
+            ok = True
+            return DeleteTask(ok=ok)
+        except:
+            raise
+        finally:
+            pass
+
