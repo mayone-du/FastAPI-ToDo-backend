@@ -1,14 +1,14 @@
 import graphene
-from auth.token_schemas import CreateAccessToken
+from auth.models.user import UserModel
+from auth.schemas.token import CreateAccessToken
+from auth.schemas.user import CreateUser, UserNode
 from fastapi import HTTPException, status
 from graphene_sqlalchemy.fields import SQLAlchemyConnectionField
 from graphql_relay import from_global_id
 from jose import JWTError, jwt
-from models.user import UserModel
 from settings.envs import ALGORITHM, SECRET_KEY
 
 from .task import CreateTask, DeleteTask, TaskNode, UpdateTask
-from .user import CreateUser, UserNode
 
 
 class Query(graphene.ObjectType):

@@ -1,7 +1,7 @@
 from typing import Optional
 
-import database
 import graphene
+from app.database import db
 from graphene_sqlalchemy.types import SQLAlchemyObjectType
 from models import user
 from pydantic import BaseModel
@@ -37,14 +37,14 @@ class CreateUser(graphene.Mutation):
                                     email=kwargs.get('email'),
                                     # ユーザーが登録したパスワードをハッシュ化して保存
                                     password=hash_password(kwargs.get('password')))
-            database.db.add(new_user)
-            database.db.commit()
-            database.db.refresh(new_user)
+            db.add(new_user)
+            db.commit()
+            db.refresh(new_user)
             ok = True
             return CreateUser(ok=ok)
             # TODO: エラーハンドリング
         except:
-            database.db.rollback()
+            db.rollback()
             raise
 
 

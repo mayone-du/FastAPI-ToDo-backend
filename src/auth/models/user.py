@@ -1,8 +1,8 @@
-import database
+from app.database import Base
 from sqlalchemy import Column, String
 
 
-class UserModel(database.Base):
+class UserModel(Base):
     __tablename__ = "user"
     __table_args__ = {'extend_existing': True}
     ulid = Column(String, primary_key=True, unique=True)
