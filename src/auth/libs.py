@@ -1,24 +1,22 @@
-from datetime import datetime, timedelta
-from typing import Optional
+# from datetime import datetime, timedelta
+# from typing import Optional
 
 import bcrypt
-from app.schemas.user import UserNode, UserSchema
-from fastapi import Depends, HTTPException, status
+# from app.schemas.user import UserNode, UserSchema
+# from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
+# from jose import JWTError, jwt
 from passlib.context import CryptContext
-from pydantic import BaseModel
-from settings.envs import ALGORITHM, SECRET_KEY
 
+# from pydantic import BaseModel
+# from settings.envs import ALGORITHM, SECRET_KEY
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
+# class Token(BaseModel):
+#     access_token: str
+#     token_type: str
 
-
-class TokenData(BaseModel):
-    email: Optional[str] = None
-
+# class TokenData(BaseModel):
+#     email: Optional[str] = None
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -41,24 +39,21 @@ def verify_password(plain_password, hashed_password):
 
 
 # パスワードのハッシュ値を取得 毎回計算される値が変わるため、使い所がわかない。消す可能性あり
-def get_password_hash(password):
-    return pwd_context.hash(password)
+# def get_password_hash(password):
+#     return pwd_context.hash(password)
 
+# def get_user(db, email: str):
+#     if email in db:
+#         user_dict = db[email]
+#         return UserSchema(**user_dict)
 
-def get_user(db, email: str):
-    if email in db:
-        user_dict = db[email]
-        return UserSchema(**user_dict)
-
-
-def authenticate_user(db, email: str, password: str):
-    user = get_user(db, email)
-    if not user:
-        return False
-    if not verify_password(password, user.hashed_password):
-        return False
-    return user
-
+# def authenticate_user(db, email: str, password: str):
+#     user = get_user(db, email)
+#     if not user:
+#         return False
+#     if not verify_password(password, user.hashed_password):
+#         return False
+#     return user
 
 # アクセストークンの作成
 # def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
