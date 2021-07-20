@@ -15,6 +15,7 @@ python-jose = "*"
 python-multipart = "*"
 passlib = {extras = ["bcrypt"], version = "*"}
 python-ulid = "*"
+psycopg2-binary = "*"
 psycopg2 = "*"
 
 [dev-packages]
