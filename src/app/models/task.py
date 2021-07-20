@@ -12,5 +12,3 @@ class TaskModel(Base):
     content = Column(String(255))
     is_done = Column(Boolean)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-    # Base.metadata.create_all(bind=engine)

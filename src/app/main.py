@@ -5,8 +5,6 @@ from starlette.graphql import GraphQLApp
 from database.database import Base, db_session, engine
 from schemas.schemas import Mutation, Query
 
-# Baseの内容を反映させるにはここでUserModelをimportする必要あり？
-
 app = FastAPI()
 
 # # Dependency
@@ -23,9 +21,10 @@ app.add_route(
     GraphQLApp(schema=graphene.Schema(query=Query, mutation=Mutation)))
 
 
+# APIサーバーが立ち上がったときの処理
 @app.on_event("startup")
 async def startup_event():
-    # テーブルのリセット
+    # テーブルのリセットをしたいときはコメントを解除
     # Base.metadata.drop_all(bind=engine)
     # 起動時にテーブルを作成
     Base.metadata.create_all(bind=engine)

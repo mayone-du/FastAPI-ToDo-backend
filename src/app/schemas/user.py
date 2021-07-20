@@ -1,4 +1,4 @@
-from typing import Optional
+# from typing import Optional
 
 import graphene
 from database.database import db

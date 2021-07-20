@@ -1,11 +1,7 @@
-# from sys import path
 
 from database.database import Base
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.sql import func
-
-# path.append('../../')
-
 
 
 # リフレッシュトークンのみDBに保存する

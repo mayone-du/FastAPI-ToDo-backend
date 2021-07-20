@@ -62,6 +62,7 @@ class CreateRefreshToken(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info):
+        # TODO: ランダムな文字列でリフレッシュトークンを生成し、DBに保存
         ulid = ''
         data = {
             'ulid': ulid,

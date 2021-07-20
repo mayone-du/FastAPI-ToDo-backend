@@ -1,7 +1,7 @@
 import graphene
 from database.database import db
 from graphene_sqlalchemy import SQLAlchemyObjectType
-from graphql_relay import from_global_id
+# from graphql_relay import from_global_id
 from models import task
 from pydantic import BaseModel
 
