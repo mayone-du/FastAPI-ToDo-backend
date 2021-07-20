@@ -1,5 +1,10 @@
-from app.database import Base
+from sys import path
+
 from sqlalchemy import Column, String
+
+path.append('../../')
+
+from app.database import Base, engine
 
 
 class UserModel(Base):
@@ -9,3 +14,6 @@ class UserModel(Base):
     username = Column(String(255))
     email = Column(String(255), unique=True)
     password = Column(String)
+    full_name = Column(String(255))
+
+    # Base.metadata.create_all(bind=engine)

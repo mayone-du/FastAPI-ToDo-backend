@@ -1,11 +1,15 @@
-# from app.database import Base
-from app import database
+from sys import path
+
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.sql import func
 
+path.append('../../')
+
+from app.database import Base
+
 
 # リフレッシュトークンのみDBに保存する
-class RefreshTokenModel(database.Base):
+class RefreshTokenModel(Base):
     __tablename__ = "refresh_token"
     __table_args__ = {'extend_existing': True}
 
@@ -13,5 +17,5 @@ class RefreshTokenModel(database.Base):
     #TODO: 所持者のユーザーIDと紐付ける
 
     # ランダムに生成した文字列をトークンの内容とする
-    body = Column(String)
+    body = Column(String(255))
     # expiration_date = Column(String())

@@ -73,6 +73,7 @@ class CreateRefreshToken(graphene.Mutation):
         db.add(db_refresh_token)
         db.commit()
         db.refresh(db_refresh_token)
+        db.close()
         return CreateRefreshToken(refresh_token=db_refresh_token)
 
 

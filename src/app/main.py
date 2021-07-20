@@ -8,6 +8,7 @@ from schemas.schemas import Mutation, Query
 app = FastAPI()
 
 # # Dependency
+# # セッション周りをうまいことやってくれるぽい？
 # def get_db():
 #     db = database.SessionLocal()
 #     try:
@@ -23,12 +24,12 @@ app.add_route(
 @app.on_event("startup")
 async def startup_event():
     # テーブルのリセット
-    Base.metadata.drop_all(engine)
+    Base.metadata.drop_all(bind=engine)
     # 起動時にテーブルを作成
-    # Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
 
 
-# APIサーバシャットダウン時にDBセッションを削除
+# APIサーバーのシャットダウン時にDBセッションを削除
 @app.on_event("shutdown")
 def shutdown_event():
     db_session.remove()
