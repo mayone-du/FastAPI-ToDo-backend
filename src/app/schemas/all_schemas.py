@@ -1,10 +1,11 @@
 import graphene
-from app.libs.auth import get_current_custom_user
+from app.libs.auth import get_current_custom_user, send_email_background
 from fastapi import HTTPException, status
 from graphene_sqlalchemy.fields import SQLAlchemyConnectionField
 from graphql_relay import from_global_id
 from jose import JWTError, jwt
 from models.custom_user import CustomUserModel
+from starlette.background import BackgroundTasks
 
 from .custom_user import CreateCustomUser, CustomUserNode
 from .task import CreateTask, DeleteTask, TaskNode, UpdateTask
@@ -35,6 +36,7 @@ class Query(graphene.ObjectType):
     # すべてのタスクを取得
     def resolve_all_tasks(self, info):
         query = TaskNode.get_query(info)
+        # send_email_background(BackgroundTasks(), subject='subject', email_to='cocomayo1201@gmail.com')
         return query.all()
 
 

@@ -1,9 +1,11 @@
 import bcrypt
+from fastapi import BackgroundTasks
+from fastapi_mail import FastMail, MessageSchema
 from jose import jwt
 from models.custom_user import CustomUserModel
 from passlib.context import CryptContext
 from schemas.custom_user import CustomUserNode
-from settings.envs import ALGORITHM, SECRET_KEY
+from settings.envs import ALGORITHM, MAIL_CONFIGS, SECRET_KEY
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -38,3 +40,22 @@ def get_current_custom_user(info):
     except:
         # TODO: エラーハンドリングの実装
         raise
+
+
+# バックグラウンドでメール送信
+def send_email_background(
+    background_tasks: BackgroundTasks,
+    subject: str,
+    email_to: str,
+    #   body: dict
+):
+    message = MessageSchema(
+        subject=subject,
+        recipients=[email_to],
+        body='''<h1>hogehge body</h1>''',
+        subtype='html',
+    )
+    fm = FastMail(MAIL_CONFIGS)
+    background_tasks.add_task(fm.send_message, message
+                              #   template_name='email.html'
+                              )

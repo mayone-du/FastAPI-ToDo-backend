@@ -1,4 +1,5 @@
 from decouple import config
+from fastapi_mail import ConnectionConfig
 
 POSTGRES_USER = config('POSTGRES_USER')
 POSTGRES_PASSWORD = config('POSTGRES_PASSWORD')
@@ -11,3 +12,26 @@ SQLALCHEMY_DATABASE_URL = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASS
 SECRET_KEY = config("SECRET_KEY")
 ALGORITHM = config("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = config("ACCESS_TOKEN_EXPIRE_MINUTES")
+
+MAIL_USERNAME = config('MAIL_USERNAME')
+MAIL_PASSWORD = config('MAIL_PASSWORD')
+MAIL_FROM = config('MAIL_FROM')
+MAIL_PORT = config('MAIL_PORT')
+MAIL_SERVER = config('MAIL_SERVER')
+MAIL_FROM_NAME = config('MAIL_FROM_NAME')
+
+MAIL_CONFIGS = ConnectionConfig(
+    # MAIL_USERNAME=MAIL_USERNAME,
+    MAIL_USERNAME='test.develop.webapp@gmail.com',
+    # MAIL_PASSWORD=MAIL_PASSWORD,
+    MAIL_PASSWORD='test.develop.webapp-0',
+    MAIL_FROM=MAIL_FROM,
+    MAIL_PORT=int(MAIL_PORT),
+    MAIL_SERVER=MAIL_SERVER,
+    MAIL_FROM_NAME=MAIL_FROM_NAME,
+    MAIL_TLS=True,
+    MAIL_SSL=False,
+    USE_CREDENTIALS=True,
+    # VALIDATE_CERTS=True,
+    #  TEMPLATE_FOLDER='/templates/email.html'
+)
