@@ -16,6 +16,7 @@ python-multipart = "*"
 passlib = {extras = ["bcrypt"], version = "*"}
 python-ulid = "*"
 psycopg2-binary = "*"
+fastapi-mail = "*"
 
 [dev-packages]
 yapf = "*"
