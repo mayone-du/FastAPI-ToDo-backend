@@ -62,6 +62,23 @@ class CreateAccessToken(graphene.Mutation):
             raise
 
 
+# マジックリンクを送信
+class SendMagicLink(graphene.Mutation):
+    class Arguments:
+        email = graphene.String(required=True)
+        password = graphene.String(required=True)
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(root, info, **kwargs):
+        try:
+            pass
+            ok=True
+            SendMagicLink(ok=ok)
+        except:
+            raise
+
 # リフレッシュトークンの発行
 class CreateRefreshToken(graphene.Mutation):
     refresh_token_object = graphene.JSONString(

@@ -17,6 +17,7 @@ class Query(graphene.ObjectType):
     all_users = SQLAlchemyConnectionField(CustomUserNode)
     all_tasks = SQLAlchemyConnectionField(TaskNode)
 
+    # 現在ログインしているユーザーを取得
     def resolve_current_user(self, info):
         return get_current_custom_user(info)
 

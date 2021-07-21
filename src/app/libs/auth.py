@@ -1,5 +1,4 @@
 import bcrypt
-from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
 from models.custom_user import CustomUserModel
 from passlib.context import CryptContext
@@ -7,8 +6,6 @@ from schemas.custom_user import CustomUserNode
 from settings.envs import ALGORITHM, SECRET_KEY
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 # 引数で受け取った文字列をハッシュ化する
@@ -25,7 +22,7 @@ def verify_hash_data(plain_data: str, hashed_data: str):
                           hashed_data.encode('utf-8'))
 
 
-# headersのauthorizationからjwtを受け取り、decodeしてpayloadのulidを取得し、そのulidと紐づくユーザーを返す
+# Cookieのheadersのauthorizationからjwtを取得し、decodeしてpayloadのulidを取得し、そのulidと紐づくユーザーを返す
 def get_current_custom_user(info):
     try:
         # headersのauthorizationからjwtを取得
