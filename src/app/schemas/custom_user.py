@@ -7,12 +7,13 @@ from models.custom_user import CustomUserModel
 from pydantic import BaseModel
 from ulid import ULID
 
+# circular import回避のため下部でlibs.auth.hash_dataをimportしている
 
-class CustomUserSchema(BaseModel):
-    username: str
-    email: str
-    password: str
-    # is_active: bool
+# class CustomUserSchema(BaseModel):
+#     username: str
+#     email: str
+#     password: str
+#     # is_active: bool
 
 
 class CustomUserNode(SQLAlchemyObjectType):
@@ -32,11 +33,12 @@ class CreateCustomUser(graphene.Mutation):
     @staticmethod
     def mutate(root, info, **kwargs):
         try:
-            from libs.auth import hash_password
+            # circular import回避のためここでimport
+            from libs.auth import hash_data
             new_user = CustomUserModel(ulid=str(ULID()), username=kwargs.get('username'),
                                     email=kwargs.get('email'),
                                     # ユーザーが登録したパスワードをハッシュ化して保存
-                                    password=hash_password(kwargs.get('password')))
+                                    password=hash_data(kwargs.get('password')))
             db.add(new_user)
             db.commit()
             ok = True
@@ -49,7 +51,7 @@ class CreateCustomUser(graphene.Mutation):
             db.close()
 
 
-# ユーザー情報の更新
+# 基本的なユーザー情報の更新 別でProfileモデルなどを作成し、Optional的な内容はそちらに持たせると良いかも。
 class UpdateCustomUser(graphene.Mutation):
     class Arguments:
         username = graphene.String(required=True)
@@ -71,6 +73,26 @@ class UpdateCustomUser(graphene.Mutation):
         finally:
             db.close()
 
+# 初回認証時の本人確認のフラグをTrueにする
+class UpdateProofCustomUser(graphene.Mutation):
+    # メールアドレスに送信したアクセストークンを受け取る
+    class Arguments:
+        access_token = graphene.String()
+    
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(root, info, **kwargs):
+        try:
+            # TODO: tokenからユーザー情報を取得し、isProofフラグをTrueに更新
+            pass
+            ok=True
+            return UpdateProofCustomUser(ok=ok)
+        except:
+            pass
+            raise
+        finally:
+            pass
 
 class DeleteCustomUser(graphene.Mutation):
     class Arguments:

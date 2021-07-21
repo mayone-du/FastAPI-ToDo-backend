@@ -1,20 +1,19 @@
 from datetime import datetime, timedelta
+from uuid import uuid4
 
 import graphene
 from database.database import db
 from fastapi import HTTPException
+from graphene_sqlalchemy import SQLAlchemyObjectType
 from jose import JWTError, jwt
-from libs.auth import verify_password
+from libs.auth import verify_hash_data
 from models.custom_user import CustomUserModel
 from models.token import RefreshTokenModel
 from pydantic import BaseModel
 from settings.envs import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 
-from .custom_user import UserNode
+from .custom_user import CustomUserNode
 
-
-class RefreshTokenSchema(BaseModel):
-    body: str
 
 # アクセストークンの発行 DBに保存はしない。
 class CreateAccessToken(graphene.Mutation):
@@ -22,8 +21,10 @@ class CreateAccessToken(graphene.Mutation):
         email = graphene.String(required=True)
         password = graphene.String(required=True)
 
-    access_token = graphene.String()
-
+    access_token_object = graphene.JSONString(
+        access_toekn = graphene.String(),
+        expiration_date = graphene.DateTime()
+    )
     # アクセストークン作成時にemailとpasswordを受け取り、そのユーザーのULIDをもとにJWTを発行
     @staticmethod
     def mutate(root, info, **kwargs):
@@ -31,55 +32,57 @@ class CreateAccessToken(graphene.Mutation):
             input_email = kwargs.get('email')
             input_password = kwargs.get('password')
             # emailからそのユーザーのインスタンスを取得
-            user = UserNode.get_query(info).filter(
+            user = CustomUserNode.get_query(info).filter(
                 CustomUserModel.email == input_email).first()
             # 登録済みのハッシュ化されたパスワード
             registered_password = user.password
             ulid = user.ulid
 
             # パスワードが一致しなかったらエラーレスポンスを返す
-            if not verify_password(input_password, registered_password):
+            if not verify_hash_data(input_password, registered_password):
                 # TODO: エラーレスポンスの実装
                 raise HTTPException(status_code=401)
 
+            expiration_date = datetime.utcnow() + timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
             # ulid、トークンタイプ、有効期限をもとにJWTを発行
-            token_data = {
-                'ulid':
-                ulid,
+            token_payload = {
+                'ulid': ulid,
                 # access_token or refresh_token
-                'type':
-                'access_token',
+                'type': 'access_token',
                 # 有効期限をUTCタイムスタンプ形式で設定
-                'exp':
-                datetime.utcnow() +
-                timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+                'exp': expiration_date
             }
-            access_token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
-            return CreateAccessToken(access_token=access_token)
+            access_token = jwt.encode(token_payload, SECRET_KEY, algorithm=ALGORITHM)
+            access_token_object = {
+                'access_token': access_token,
+                'expiration_date': str(expiration_date)
+            }
+            return CreateAccessToken(access_token_object=access_token_object)
         except:
             raise
 
 
 # リフレッシュトークンの発行
 class CreateRefreshToken(graphene.Mutation):
-    refresh_token = graphene.String()
-
+    refresh_token_object = graphene.JSONString(
+        refresh_token = graphene.String(),
+        expiration_date = graphene.String()
+    ) 
     @staticmethod
     def mutate(root, info):
         try:
-            # TODO: ランダムな文字列でリフレッシュトークンを生成し、DBに保存
-            ulid = ''
-            data = {
-                'ulid': ulid,
-                'token_type': 'refresh_token',
-                'exp': datetime.utcnow() + timedelta(days=7)
-            }
-            refresh_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
-
-            db_refresh_token = RefreshTokenModel(body='sampel refresh token')
+            # UUIDを生成してリフレッシュトークンとする
+            uuid = uuid4().hex
+            expiration_date = datetime.utcnow() + timedelta(days=7)
+            db_refresh_token = RefreshTokenModel(body=uuid, expiration_date=expiration_date)
+            refresh_token_object = {
+                    'refresh_token' : uuid,
+                    'expiration_date' : str(expiration_date)
+                }
+            
             db.add(db_refresh_token)
             db.commit()
-            return CreateRefreshToken(refresh_token=db_refresh_token)
+            return CreateRefreshToken(refresh_token_object=refresh_token_object)
         except:
             db.rollback()
             raise
@@ -87,9 +90,30 @@ class CreateRefreshToken(graphene.Mutation):
             db.close()
 
 
-# # 有効期限の切れたアクセストークンを再発行し、リフレッシュトークンも新しいものに更新する
-# class UpdateTokens(graphene.Mutation):
-#     pass
+# リフレッシュトークンを受け取り、有効期限の切れたアクセストークンを再発行し、リフレッシュトークンも新しいものに更新する
+class UpdateTokens(graphene.Mutation):
+    class Arguments:
+        refresh_token = graphene.String(required=True)
+    
+    tokens_object = {
+        'access_token': graphene.String(),
+        'access_token_exp': graphene.DateTime(),
+        'refresh_token': graphene.String(),
+        'refresh_token_exp': graphene.DateTime()
+    }
+
+    @staticmethod
+    def mutate(root, info, **kwargs):
+        # 2種類のトークンを再発行し、もともとDBに保存しているリフレッシュトークンを削除する
+        refresh_token = kwargs.get('refresh_token')
+        tokens_object = {
+            'access_token': '',
+            'access_token_exp': '',
+            'refresh_token': '',
+            'refresh_token_exp': '',
+        }
+        return UpdateTokens(tokens_object=tokens_object)
+
 
 
 # # リフレッシュトークンの削除？

@@ -5,11 +5,10 @@ from graphene_sqlalchemy import SQLAlchemyObjectType
 from models import task
 from pydantic import BaseModel
 
-
-class TaskSchema(BaseModel):
-    title: str
-    content: str
-    is_done: bool
+# class TaskSchema(BaseModel):
+#     title: str
+#     content: str
+#     is_done: bool
 
 
 class TaskNode(SQLAlchemyObjectType):

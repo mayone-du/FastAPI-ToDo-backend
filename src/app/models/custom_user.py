@@ -1,6 +1,10 @@
 from database.database import Base, engine
-from sqlalchemy import Column, String
+from sqlalchemy import Boolean, Column, String
 from sqlalchemy.orm import relationship
+
+# relationshipのためにimport
+from .task import TaskModel
+from .token import RefreshTokenModel
 
 
 # PostgreSQLがデフォルトでuserテーブルを作成してしまうため、名前を見やすくCustomとつける
@@ -12,6 +16,7 @@ class CustomUserModel(Base):
     email = Column(String(255), unique=True)
     password = Column(String)
     full_name = Column(String(255))
+    # 本人確認確認フラグ マジックリンクをクリックしたらTrueに更新する
+    is_proof = Column(Boolean, nullable=False, default=False)
     tasks = relationship('TaskModel')
     refresh_token = relationship('RefreshTokenModel')
-

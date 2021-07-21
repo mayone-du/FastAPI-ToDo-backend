@@ -1,11 +1,10 @@
 import graphene
-from database.database import Base, db, engine
+from app.libs.auth import get_current_custom_user
 from fastapi import HTTPException, status
 from graphene_sqlalchemy.fields import SQLAlchemyConnectionField
 from graphql_relay import from_global_id
 from jose import JWTError, jwt
 from models.custom_user import CustomUserModel
-from settings.envs import ALGORITHM, SECRET_KEY
 
 from .custom_user import CreateCustomUser, CustomUserNode
 from .task import CreateTask, DeleteTask, TaskNode, UpdateTask
@@ -19,25 +18,7 @@ class Query(graphene.ObjectType):
     all_tasks = SQLAlchemyConnectionField(TaskNode)
 
     def resolve_current_user(self, info):
-        try:
-            # headersのauthorizationからjwtを取得
-            headers = dict(info.context['request']['headers'])
-            token = headers[b'authorization'].decode()[
-                7:]  # Bearer の文字列を半角空白含めて削除
-            # トークンの内容を取得
-            payload: dict = jwt.decode(token,
-                                       SECRET_KEY,
-                                       algorithms=[ALGORITHM])
-            ulid = payload.get('ulid')
-            # ulidに紐づくユーザーを返却
-            return CustomUserNode.get_query(info).filter(
-                CustomUserModel.ulid == ulid).first()
-        except JWTError:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+        return get_current_custom_user(info)
 
     # idからユーザーを取得
     def resolve_user(self, info, id):
@@ -65,4 +46,3 @@ class Mutation(graphene.ObjectType):
     # auth
     create_access_token = CreateAccessToken.Field()
     create_refresh_token = CreateRefreshToken.Field()
-    # get_access_token =

@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from starlette.graphql import GraphQLApp
 
 from database.database import Base, db_session, engine
-from schemas.schemas import Mutation, Query
+from schemas.all_schemas import Mutation, Query
 
 app = FastAPI()
 
