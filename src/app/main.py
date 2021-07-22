@@ -7,7 +7,7 @@ from starlette.background import BackgroundTasks
 from starlette.graphql import GraphQLApp
 
 from database.database import Base, db_session, engine
-from libs.auth import send_email_background
+# from libs.auth import send_email_background
 from schemas.all_schemas import Mutation, Query
 
 path.append('../')
@@ -27,42 +27,6 @@ app = FastAPI()
 app.add_route(
     "/graphql",
     GraphQLApp(schema=graphene.Schema(query=Query, mutation=Mutation)))
-
-
-@app.get('/')
-def send_email_backgroundtasks(background_tasks: BackgroundTasks):
-    send_email_background(
-        background_tasks,
-        'Hello World',
-        'cocomayo1201@gmail.com',
-        #   {
-        #       'title': 'Hello World',
-        #       'name': 'John Doe'
-        #   }
-    )
-    return 'Success'
-
-
-@app.post("/send_mail")
-async def send_mail(email):
-
-    template = """
-        <html>
-        <body>
-<p>Hi !!!
-        <br>Thanks for using fastapi mail, keep using it..!!!</p>
-        </body>
-        </html>
-        """
-
-    message = MessageSchema(
-        subject="Fastapi-Mail module",
-        recipients=[email],
-        body=template,
-        subtype="html")
-
-    fm = FastMail(MAIL_CONFIGS)
-    await fm.send_message(message)
 
 
 # APIサーバーが立ち上がったときの処理

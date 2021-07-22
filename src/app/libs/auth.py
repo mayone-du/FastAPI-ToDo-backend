@@ -40,22 +40,3 @@ def get_current_custom_user(info):
     except:
         # TODO: エラーハンドリングの実装
         raise
-
-
-# バックグラウンドでメール送信
-def send_email_background(
-    background_tasks: BackgroundTasks,
-    subject: str,
-    email_to: str,
-    #   body: dict
-):
-    message = MessageSchema(
-        subject=subject,
-        recipients=[email_to],
-        body='''<h1>hogehge body</h1>''',
-        subtype='html',
-    )
-    fm = FastMail(MAIL_CONFIGS)
-    background_tasks.add_task(fm.send_message, message
-                              #   template_name='email.html'
-                              )

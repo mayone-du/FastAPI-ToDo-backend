@@ -1,11 +1,12 @@
 import graphene
-from app.libs.auth import get_current_custom_user, send_email_background
+from app.libs.auth import get_current_custom_user  # , send_email_background
 from fastapi import HTTPException, status
+from fastapi_mail import FastMail, MessageSchema
 from graphene_sqlalchemy.fields import SQLAlchemyConnectionField
 from graphql_relay import from_global_id
 from jose import JWTError, jwt
 from models.custom_user import CustomUserModel
-from starlette.background import BackgroundTasks
+from settings.envs import MAIL_CONFIGS
 
 from .custom_user import CreateCustomUser, CustomUserNode
 from .task import CreateTask, DeleteTask, TaskNode, UpdateTask
@@ -16,7 +17,7 @@ class Query(graphene.ObjectType):
     current_user = graphene.Field(CustomUserNode)
     user = graphene.Field(CustomUserNode, id=graphene.NonNull(graphene.ID))
     all_users = SQLAlchemyConnectionField(CustomUserNode)
-    all_tasks = SQLAlchemyConnectionField(TaskNode)
+    all_tasks = SQLAlchemyConnectionField(TaskNode, email=graphene.String(required=True))
 
     # 現在ログインしているユーザーを取得
     def resolve_current_user(self, info):
@@ -34,9 +35,20 @@ class Query(graphene.ObjectType):
         return query.all()
 
     # すべてのタスクを取得
-    def resolve_all_tasks(self, info):
+    def resolve_all_tasks(self, info, **kwargs):
         query = TaskNode.get_query(info)
         # send_email_background(BackgroundTasks(), subject='subject', email_to='cocomayo1201@gmail.com')
+        background = info.context["background"]
+        message = MessageSchema(
+            subject='subject',
+            recipients=[kwargs.get('email')],
+            body='''<h1>hogehge body</h1>''',
+            subtype='html',
+        )
+        fm = FastMail(MAIL_CONFIGS)
+        background.add_task(fm.send_message, message
+                               #   template_name='email.html'
+        )
         return query.all()
 
 

@@ -21,10 +21,10 @@ MAIL_SERVER = config('MAIL_SERVER')
 MAIL_FROM_NAME = config('MAIL_FROM_NAME')
 
 MAIL_CONFIGS = ConnectionConfig(
-    # MAIL_USERNAME=MAIL_USERNAME,
-    MAIL_USERNAME='test.develop.webapp@gmail.com',
-    # MAIL_PASSWORD=MAIL_PASSWORD,
-    MAIL_PASSWORD='test.develop.webapp-0',
+    MAIL_USERNAME=MAIL_USERNAME,
+    # MAIL_USERNAME='test.develop.webapp@gmail.com',
+    MAIL_PASSWORD=MAIL_PASSWORD,
+    # MAIL_PASSWORD='test.develop.webapp-0',
     MAIL_FROM=MAIL_FROM,
     MAIL_PORT=int(MAIL_PORT),
     MAIL_SERVER=MAIL_SERVER,
