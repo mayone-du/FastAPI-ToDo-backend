@@ -1,11 +1,14 @@
+from datetime import datetime, timedelta
+
 import bcrypt
-from fastapi import BackgroundTasks
+from fastapi import BackgroundTasks, HTTPException
 from fastapi_mail import FastMail, MessageSchema
 from jose import jwt
 from models.custom_user import CustomUserModel
 from passlib.context import CryptContext
 from schemas.custom_user import CustomUserNode
-from settings.envs import ALGORITHM, MAIL_CONFIGS, SECRET_KEY
+from settings.envs import (ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM,
+                           MAIL_CONFIGS, SECRET_KEY)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -25,7 +28,7 @@ def verify_hash_data(plain_data: str, hashed_data: str):
 
 
 # Cookieのheadersのauthorizationからjwtを取得し、decodeしてpayloadのulidを取得し、そのulidと紐づくユーザーを返す
-def get_current_custom_user(info):
+def get_current_custom_user(info) -> CustomUserModel:
     try:
         # headersのauthorizationからjwtを取得
         headers = dict(info.context['request']['headers'])
@@ -35,8 +38,45 @@ def get_current_custom_user(info):
         payload: dict = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         ulid = payload.get('ulid')
         # ulidに紐づくユーザーを返却
+        # TODO: token自体の検証（有効期限などs）
         return CustomUserNode.get_query(info).filter(
             CustomUserModel.ulid == ulid).first()
     except:
         # TODO: エラーハンドリングの実装
+        raise
+
+
+# アクセストークンの作成
+def create_access_token(info, email: str, password: str) -> dict:
+    try:
+        # emailからそのユーザーのインスタンスを取得
+        user = CustomUserNode.get_query(info).filter(
+            CustomUserModel.email == email).first()
+        # 登録済みのハッシュ化されたパスワード
+        registered_password = user.password
+        ulid = user.ulid
+        # パスワードが一致しなかったらエラーレスポンスを返す
+        if not verify_hash_data(password, registered_password):
+            # TODO: エラーレスポンスの実装
+            raise HTTPException(status_code=401)
+        expiration_date = datetime.utcnow() + timedelta(
+            minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+        # ulid、トークンタイプ、有効期限をもとにJWTを発行
+        token_payload = {
+            'ulid': ulid,
+            # access_token or refresh_token
+            'type': 'access_token',
+            # 有効期限をUTCタイムスタンプ形式で設定
+            'exp': expiration_date
+        }
+        access_token = jwt.encode(token_payload,
+                                  SECRET_KEY,
+                                  algorithm=ALGORITHM)
+        access_token_object = {
+            'access_token': access_token,
+            'expiration_date': str(expiration_date)
+        }
+        return access_token_object
+    except:
+        # TODO: エラーレスポンスの実装
         raise

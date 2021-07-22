@@ -4,13 +4,15 @@ from uuid import uuid4
 import graphene
 from database.database import db
 from fastapi import HTTPException
+from fastapi_mail import FastMail, MessageSchema
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from jose import JWTError, jwt
-from libs.auth import verify_hash_data
+from libs.auth import create_access_token, verify_hash_data
 from models.custom_user import CustomUserModel
 from models.token import RefreshTokenModel
 from pydantic import BaseModel
-from settings.envs import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
+from settings.envs import (ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM,
+                           MAIL_CONFIGS, SECRET_KEY)
 
 from .custom_user import CustomUserNode
 
@@ -29,41 +31,14 @@ class CreateAccessToken(graphene.Mutation):
     @staticmethod
     def mutate(root, info, **kwargs):
         try:
-            input_email = kwargs.get('email')
-            input_password = kwargs.get('password')
-            # emailからそのユーザーのインスタンスを取得
-            user = CustomUserNode.get_query(info).filter(
-                CustomUserModel.email == input_email).first()
-            # 登録済みのハッシュ化されたパスワード
-            registered_password = user.password
-            ulid = user.ulid
-
-            # パスワードが一致しなかったらエラーレスポンスを返す
-            if not verify_hash_data(input_password, registered_password):
-                # TODO: エラーレスポンスの実装
-                raise HTTPException(status_code=401)
-
-            expiration_date = datetime.utcnow() + timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
-            # ulid、トークンタイプ、有効期限をもとにJWTを発行
-            token_payload = {
-                'ulid': ulid,
-                # access_token or refresh_token
-                'type': 'access_token',
-                # 有効期限をUTCタイムスタンプ形式で設定
-                'exp': expiration_date
-            }
-            access_token = jwt.encode(token_payload, SECRET_KEY, algorithm=ALGORITHM)
-            access_token_object = {
-                'access_token': access_token,
-                'expiration_date': str(expiration_date)
-            }
+            access_token_object: dict = create_access_token(info, kwargs)
             return CreateAccessToken(access_token_object=access_token_object)
         except:
             raise
 
 
 # マジックリンクを送信
-class SendMagicLink(graphene.Mutation):
+class SendMagicLinkEmail(graphene.Mutation):
     class Arguments:
         email = graphene.String(required=True)
         password = graphene.String(required=True)
@@ -73,9 +48,26 @@ class SendMagicLink(graphene.Mutation):
     @staticmethod
     def mutate(root, info, **kwargs):
         try:
-            pass
+            # アクセストークンを作成
+            access_token_object: dict = create_access_token(info, email=kwargs.get('email'), password=kwargs.get('password'))
+            # バックグラウンドタスクで非優先的に、同期的にメールを送信
+            background = info.context["background"]
+            email_body = f'''
+                <h1>hogehge body</h1>
+                <p><br><a href="https://google.com">こちらのリンク</a>
+                をクリックすると本登録が完了します。有効期限は30分です。</p>
+                <p><a href="https://mayoblog.vercel.app/search/results?keyword={access_token_object.get('access_token')}">Link</a></p>
+            '''
+            message = MessageSchema(
+                subject='Webアプリ 本登録のご案内',
+                recipients=[kwargs.get('email')],
+                body=email_body,
+                subtype='html',
+            )
+            fm = FastMail(MAIL_CONFIGS)
+            background.add_task(fm.send_message, message)
             ok=True
-            SendMagicLink(ok=ok)
+            return SendMagicLinkEmail(ok=ok)
         except:
             raise
 

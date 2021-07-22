@@ -6,18 +6,17 @@ from graphene_sqlalchemy.fields import SQLAlchemyConnectionField
 from graphql_relay import from_global_id
 from jose import JWTError, jwt
 from models.custom_user import CustomUserModel
-from settings.envs import MAIL_CONFIGS
 
 from .custom_user import CreateCustomUser, CustomUserNode
 from .task import CreateTask, DeleteTask, TaskNode, UpdateTask
-from .token import CreateAccessToken, CreateRefreshToken
+from .token import CreateAccessToken, CreateRefreshToken, SendMagicLinkEmail
 
 
 class Query(graphene.ObjectType):
     current_user = graphene.Field(CustomUserNode)
     user = graphene.Field(CustomUserNode, id=graphene.NonNull(graphene.ID))
     all_users = SQLAlchemyConnectionField(CustomUserNode)
-    all_tasks = SQLAlchemyConnectionField(TaskNode, email=graphene.String(required=True))
+    all_tasks = SQLAlchemyConnectionField(TaskNode)
 
     # 現在ログインしているユーザーを取得
     def resolve_current_user(self, info):
@@ -35,25 +34,16 @@ class Query(graphene.ObjectType):
         return query.all()
 
     # すべてのタスクを取得
-    def resolve_all_tasks(self, info, **kwargs):
+    def resolve_all_tasks(self, info):
         query = TaskNode.get_query(info)
-        # send_email_background(BackgroundTasks(), subject='subject', email_to='cocomayo1201@gmail.com')
-        background = info.context["background"]
-        message = MessageSchema(
-            subject='subject',
-            recipients=[kwargs.get('email')],
-            body='''<h1>hogehge body</h1>''',
-            subtype='html',
-        )
-        fm = FastMail(MAIL_CONFIGS)
-        background.add_task(fm.send_message, message
-                               #   template_name='email.html'
-        )
         return query.all()
 
 
 class Mutation(graphene.ObjectType):
+    # user
     create_user = CreateCustomUser.Field()
+
+    # task
     create_task = CreateTask.Field()
     update_task = UpdateTask.Field()
     delete_task = DeleteTask.Field()
@@ -61,3 +51,4 @@ class Mutation(graphene.ObjectType):
     # auth
     create_access_token = CreateAccessToken.Field()
     create_refresh_token = CreateRefreshToken.Field()
+    send_magic_link_email = SendMagicLinkEmail.Field()

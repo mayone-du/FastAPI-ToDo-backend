@@ -1,6 +1,8 @@
 import graphene
+from app.models.task import TaskModel
 from database.database import db
 from graphene_sqlalchemy import SQLAlchemyObjectType
+from graphql_relay.node.node import from_global_id
 # from graphql_relay import from_global_id
 from models import task
 from pydantic import BaseModel
@@ -53,12 +55,20 @@ class UpdateTask(graphene.Mutation):
     @staticmethod
     def mutate(root, info, **kwargs):
         try:
+            # idから取得したtaskを更新
+            current_task: TaskModel = TaskNode.get_query(info).filter(TaskModel.id==from_global_id(kwargs.get('id'))[1]).first()
+            # TODO: リファクタリング
+            current_task.title=kwargs.get('title')
+            current_task.content=kwargs.get('content')
+            current_task.is_done=kwargs.get('is_done')
+            db.commit()
             ok = True
             return UpdateTask(ok=ok)
         except:
+            db.rollback()
             raise
         finally:
-            pass
+            db.close()
 
 
 class DeleteTask(graphene.Mutation):

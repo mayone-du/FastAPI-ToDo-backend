@@ -7,7 +7,7 @@ from models.custom_user import CustomUserModel
 from pydantic import BaseModel
 from ulid import ULID
 
-# circular import回避のため下部でlibs.auth.hash_dataをimportしている
+# circular import回避のため下部で2箇所importしている
 
 # class CustomUserSchema(BaseModel):
 #     username: str
@@ -73,6 +73,8 @@ class UpdateCustomUser(graphene.Mutation):
         finally:
             db.close()
 
+
+
 # 初回認証時の本人確認のフラグをTrueにする
 class UpdateProofCustomUser(graphene.Mutation):
     # メールアドレスに送信したアクセストークンを受け取る
@@ -84,16 +86,23 @@ class UpdateProofCustomUser(graphene.Mutation):
     @staticmethod
     def mutate(root, info, **kwargs):
         try:
-            # TODO: tokenからユーザー情報を取得し、isProofフラグをTrueに更新
-            pass
+            # TODO: tokenをvalidation
+            # ユーザーの本人確認フラグを更新
+            from libs.auth import get_current_custom_user
+            current_user: CustomUserModel = get_current_custom_user(info)           
+            current_user.is_proof = True
+            db.commit()
+            # TODO: リフレッシュトークンも生成する。
             ok=True
             return UpdateProofCustomUser(ok=ok)
         except:
-            pass
+            db.rollback()
             raise
         finally:
-            pass
+            db.close()
 
+
+# ユーザーの削除
 class DeleteCustomUser(graphene.Mutation):
     class Arguments:
         id = graphene.ID(required=True)
