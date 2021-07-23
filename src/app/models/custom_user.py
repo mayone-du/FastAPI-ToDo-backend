@@ -11,10 +11,11 @@ from .token import RefreshTokenModel
 class CustomUserModel(Base):
     __tablename__ = "custom_users"
     __table_args__ = {'extend_existing': True}
+
     ulid = Column(String, primary_key=True, unique=True)
-    username = Column(String(255))
-    email = Column(String(255), unique=True)
-    password = Column(String)
+    username = Column(String(255), nullable=False)
+    email = Column(String(255), unique=True, nullable=False)
+    password = Column(String, nullable=False)
     full_name = Column(String(255))
     # 本人確認確認フラグ マジックリンクをクリックしたらTrueに更新する
     is_proof = Column(Boolean, nullable=False, default=False)

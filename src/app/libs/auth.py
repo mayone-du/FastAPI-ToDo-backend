@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 import bcrypt
+from database.database import db
 from fastapi import BackgroundTasks, HTTPException
 from fastapi_mail import FastMail, MessageSchema
 from jose import jwt
@@ -38,7 +39,8 @@ def get_current_custom_user(info) -> CustomUserModel:
         payload: dict = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         ulid = payload.get('ulid')
         # ulidに紐づくユーザーを返却
-        # TODO: token自体の検証（有効期限などs）
+        # TODO: token自体の検証（有効期限など）
+        validate_access_token(token)
         return CustomUserNode.get_query(info).filter(
             CustomUserModel.ulid == ulid).first()
     except:
@@ -60,7 +62,7 @@ def create_access_token(info, email: str, password: str) -> dict:
             # TODO: エラーレスポンスの実装
             raise HTTPException(status_code=401)
         expiration_date = datetime.utcnow() + timedelta(
-            minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+            minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         # ulid、トークンタイプ、有効期限をもとにJWTを発行
         token_payload = {
             'ulid': ulid,
@@ -79,4 +81,30 @@ def create_access_token(info, email: str, password: str) -> dict:
         return access_token_object
     except:
         # TODO: エラーレスポンスの実装
+        raise
+
+
+# TODO: tokenのpayloadについて考えたりエラーハンドリングなど
+# アクセストークンを検証する。デコレーターにした方がよいかも
+def validate_access_token(access_token: str):
+    try:
+        now = datetime.utcnow().timestamp()
+        payload: dict = jwt.decode(access_token,
+                                   SECRET_KEY,
+                                   algorithms=[ALGORITHM])
+        ulid = payload.get('ulid')
+        token_type = payload.get('type')
+        expiration_date = payload.get('exp')
+
+        # ulidに紐づくユーザーがいなかったらエラー
+        if db.query(CustomUserModel).filter(
+                CustomUserModel.ulid == ulid).first() is None:
+            raise
+        # トークンタイプがaccess_tokenじゃなかったらエラー（トークンに持たせるpayloadについては要検討）
+        if token_type != 'access_token':
+            raise
+        # 有効期限が過ぎていたらエラー処理
+        if now > expiration_date:
+            raise
+    except:
         raise
