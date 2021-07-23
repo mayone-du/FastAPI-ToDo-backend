@@ -1,12 +1,10 @@
 from datetime import datetime, timedelta
 from uuid import uuid4
 
-import bcrypt
 import graphene
 from app.libs.auth import get_current_custom_user, hash_data
 from database.database import db
 from fastapi import HTTPException
-from graphene_sqlalchemy import SQLAlchemyObjectType
 from jose import JWTError, jwt
 from libs.auth import create_access_token, verify_hash_data
 from models.custom_user import CustomUserModel
@@ -14,8 +12,6 @@ from models.token import RefreshTokenModel
 from pydantic import BaseModel
 from settings.envs import (ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM,
                            REFRESH_TOKEN_EXPIRE_DAYS, SECRET_KEY)
-
-from .custom_user import CustomUserNode
 
 
 # アクセストークンの発行 DBに保存はしない。

@@ -1,13 +1,13 @@
 import graphene
 from app.libs.auth import get_current_custom_user  # , send_email_background
 from fastapi import HTTPException, status
-from fastapi_mail import FastMail, MessageSchema
 from graphene_sqlalchemy.fields import SQLAlchemyConnectionField
 from graphql_relay import from_global_id
 from jose import JWTError, jwt
 from models.custom_user import CustomUserModel
 
-from .custom_user import CreateCustomUser, CustomUserNode
+from .custom_user import (CreateCustomUser, CustomUserNode,
+                          UpdateProofCustomUser)
 from .email import SendMagicLinkEmail
 from .task import CreateTask, DeleteTask, TaskNode, UpdateTask
 from .token import (CreateAccessToken, CreateRefreshToken, ReAuthentication,
@@ -44,6 +44,7 @@ class Query(graphene.ObjectType):
 class Mutation(graphene.ObjectType):
     # user
     create_user = CreateCustomUser.Field()
+    update_proof_custom_user = UpdateProofCustomUser.Field()
 
     # task
     create_task = CreateTask.Field()

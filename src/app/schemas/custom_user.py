@@ -1,19 +1,10 @@
-# from typing import Optional
-
 import graphene
 from database.database import db
 from graphene_sqlalchemy.types import SQLAlchemyObjectType
 from models.custom_user import CustomUserModel
-from pydantic import BaseModel
 from ulid import ULID
 
 # circular import回避のため下部で2箇所importしている
-
-# class CustomUserSchema(BaseModel):
-#     username: str
-#     email: str
-#     password: str
-#     # is_active: bool
 
 
 class CustomUserNode(SQLAlchemyObjectType):
@@ -46,7 +37,6 @@ class CreateCustomUser(graphene.Mutation):
             return CreateCustomUser(ok=ok)
         except:
             db.rollback()
-            # TODO: エラーハンドリング
             raise
         finally:
             db.close()
@@ -90,7 +80,6 @@ class UpdateProofCustomUser(graphene.Mutation):
             current_user: CustomUserModel = get_current_custom_user(info)           
             current_user.is_proof = True
             db.commit()
-            # TODO: リフレッシュトークンも生成する。
             ok=True
             return UpdateProofCustomUser(ok=ok)
         except:

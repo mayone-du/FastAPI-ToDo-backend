@@ -3,8 +3,6 @@ from fastapi_mail import FastMail, MessageSchema
 from libs.auth import create_access_token, verify_hash_data
 from settings.envs import MAIL_CONFIGS
 
-from .custom_user import CustomUserNode
-
 
 # マジックリンクを送信
 class SendMagicLinkEmail(graphene.Mutation):
