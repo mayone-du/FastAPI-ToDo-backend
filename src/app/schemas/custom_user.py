@@ -112,7 +112,6 @@ class DeleteCustomUser(graphene.Mutation):
         try:
             ok=True
         except:
-            # ok=False
             raise
         finally:
             return DeleteCustomUser(ok=ok)

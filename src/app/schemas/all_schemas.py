@@ -8,9 +8,10 @@ from jose import JWTError, jwt
 from models.custom_user import CustomUserModel
 
 from .custom_user import CreateCustomUser, CustomUserNode
+from .email import SendMagicLinkEmail
 from .task import CreateTask, DeleteTask, TaskNode, UpdateTask
 from .token import (CreateAccessToken, CreateRefreshToken, ReAuthentication,
-                    SendMagicLinkEmail, UpdateTokens)
+                    UpdateTokens)
 
 
 class Query(graphene.ObjectType):

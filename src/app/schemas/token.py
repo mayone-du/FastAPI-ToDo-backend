@@ -1,13 +1,11 @@
 from datetime import datetime, timedelta
-from time import time
 from uuid import uuid4
 
 import bcrypt
 import graphene
-from app.libs.auth import hash_data
+from app.libs.auth import get_current_custom_user, hash_data
 from database.database import db
 from fastapi import HTTPException
-from fastapi_mail import FastMail, MessageSchema
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from jose import JWTError, jwt
 from libs.auth import create_access_token, verify_hash_data
@@ -15,7 +13,7 @@ from models.custom_user import CustomUserModel
 from models.token import RefreshTokenModel
 from pydantic import BaseModel
 from settings.envs import (ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM,
-                           MAIL_CONFIGS, REFRESH_TOKEN_EXPIRE_DAYS, SECRET_KEY)
+                           REFRESH_TOKEN_EXPIRE_DAYS, SECRET_KEY)
 
 from .custom_user import CustomUserNode
 
@@ -40,45 +38,8 @@ class CreateAccessToken(graphene.Mutation):
             raise
 
 
-# マジックリンクを送信
-class SendMagicLinkEmail(graphene.Mutation):
-    class Arguments:
-        email = graphene.String(required=True)
-        password = graphene.String(required=True)
-
-    ok = graphene.Boolean()
-
-    @staticmethod
-    def mutate(root, info, **kwargs):
-        try:
-            # アクセストークンを作成
-            # TODO: リファクタ（関数名がややこしい）
-            access_token_object: dict = create_access_token(info, email=kwargs.get('email'), password=kwargs.get('password'))
-            # バックグラウンドタスクで非優先的に、同期的にメールを送信
-            background = info.context["background"]
-            email_body = f'''
-                <h1>本登録のご案内</h1>
-                <p><br><a href="https://google.com">こちらのリンク</a>
-                をクリックすると本登録が完了します。有効期限は30分です。</p>
-                <p><a href="https://mayoblog.vercel.app/search/results?keyword={access_token_object.get('access_token')}">Link</a></p>
-            '''
-            message = MessageSchema(
-                subject='Webアプリ 本登録のご案内',
-                recipients=[kwargs.get('email')],
-                body=email_body,
-                subtype='html',
-            )
-            fm = FastMail(MAIL_CONFIGS)
-            background.add_task(fm.send_message, message)
-            ok=True
-            return SendMagicLinkEmail(ok=ok)
-        except:
-            raise
-
-# ? リフレッシュトークンの発行（初回のみ？）
+# CookieのJWTをもとにリフレッシュトークンの発行（初回のみ）
 class CreateRefreshToken(graphene.Mutation):
-    class Arguments:
-        ulid = graphene.String(required=True)
 
     refresh_token_object = graphene.JSONString(
         refresh_token = graphene.String(),
@@ -86,17 +47,17 @@ class CreateRefreshToken(graphene.Mutation):
     ) 
 
     @staticmethod
-    def mutate(root, info, **kwargs):
+    def mutate(root, info):
         try:
+            ulid = get_current_custom_user(info).ulid
             # UUIDを生成してリフレッシュトークンとする
             uuid = uuid4().hex
             expiration_date = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
-            db_refresh_token = RefreshTokenModel(uuid=uuid, token_holder=kwargs.get('ulid'), expiration_date=expiration_date)
+            db_refresh_token = RefreshTokenModel(uuid=uuid, token_holder=ulid, expiration_date=expiration_date)
             refresh_token_object = {
-                    'refresh_token' : uuid,
-                    'expiration_date' : str(expiration_date)
-                }
-            
+                'refresh_token' : uuid,
+                'expiration_date' : str(expiration_date)
+            }
             db.add(db_refresh_token)
             db.commit()
             return CreateRefreshToken(refresh_token_object=refresh_token_object)
@@ -180,23 +141,20 @@ class ReAuthentication(graphene.Mutation):
         try:
             input_email = kwargs.get('email')
             input_password = kwargs.get('password')
-            # ユーザーの検証 & 取得
-            # user = db.query(CustomUserModel).filter(CustomUserModel.email==input_email, CustomUserModel.password==hash_data(input_password)).first()
-            # if user is None:
-            #     raise
+            # TODO: ユーザーの検証&JWTの発行 ↓の関数の検証部分は別に切り出すかも。無駄な処理が走りすぎ。
             access_token_object: dict = create_access_token(info, email=input_email, password=input_password)
-            # emailとpasswordからユーザーのulidを取得
+            # emailとpasswordからユーザーのulidを取得、検証
             user = db.query(CustomUserModel).filter(CustomUserModel.email==input_email).first()
             if verify_hash_data(input_password, user.password) == False:
                 raise
             # TODO: ↓リファクタ 関数にして共通化
             new_refresh_token = uuid4().hex
             refresh_token_expiration_date = datetime.utcnow().timestamp()
-            # リフレッシュトークンを更新
+            # リフレッシュトークンを取得
             old_refresh_token = db.query(RefreshTokenModel).filter(RefreshTokenModel.token_holder==user.ulid).first()
+            # 更新
             old_refresh_token.uuid=new_refresh_token
             db.commit()
-            db.close()
             tokens_object = {
                 'access_token': access_token_object.get('access_token'),
                 'access_token_exp': access_token_object.get('expiration_date'),
@@ -205,7 +163,11 @@ class ReAuthentication(graphene.Mutation):
             }
             return ReAuthentication(tokens_object=tokens_object)
         except:
+            db.rollback()
             raise
+        finally:
+            db.close()
+
 
 
 # リフレッシュトークンの削除

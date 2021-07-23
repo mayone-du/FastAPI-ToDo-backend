@@ -16,7 +16,7 @@ from pydantic import BaseModel
 class TaskNode(SQLAlchemyObjectType):
     class Meta:
         model = task.TaskModel
-        interfaces = (graphene.relay.Node, )
+        interfaces = (graphene.relay.Node,)
 
 
 class CreateTask(graphene.Mutation):
