@@ -49,6 +49,7 @@ def get_current_custom_user(info) -> CustomUserModel:
 
 
 # アクセストークンの作成
+# TODO: リファクタ もっとやることを絞って専門性をもたせる
 def create_access_token(info, email: str, password: str) -> dict:
     try:
         # emailからそのユーザーのインスタンスを取得

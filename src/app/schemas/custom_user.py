@@ -22,6 +22,7 @@ class CustomUserNode(SQLAlchemyObjectType):
         interfaces = (graphene.relay.Node, )
 
 
+# ユーザーの作成
 class CreateCustomUser(graphene.Mutation):
     class Arguments:
         username = graphene.String(required=True)
@@ -75,17 +76,14 @@ class UpdateCustomUser(graphene.Mutation):
 
 
 
-# 初回認証時の本人確認のフラグをTrueにする
+# 初回認証時に呼ばれる関数。CookieからJWTを受け取って検証し、本人確認のフラグをTrueにする
 class UpdateProofCustomUser(graphene.Mutation):
-    # メールアドレスに送信したアクセストークンを受け取る
-    class Arguments:
-        access_token = graphene.String()
-    
     ok = graphene.Boolean()
 
     @staticmethod
     def mutate(root, info, **kwargs):
         try:
+            # cookieヘッダーのauthorizatoinからJWTを取得
             # TODO: tokenをvalidation
             # ユーザーの本人確認フラグを更新
             from libs.auth import get_current_custom_user
