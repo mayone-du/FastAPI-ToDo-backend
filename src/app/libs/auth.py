@@ -3,14 +3,13 @@ from uuid import uuid4
 
 import bcrypt
 from database.database import db
-from fastapi import BackgroundTasks, HTTPException
-from fastapi_mail import FastMail, MessageSchema
+from fastapi import HTTPException
 from jose import jwt
 from models.custom_user import CustomUserModel
 from passlib.context import CryptContext
 from schemas.custom_user import CustomUserNode
 from settings.envs import (ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM,
-                           MAIL_CONFIGS, REFRESH_TOKEN_EXPIRE_DAYS, SECRET_KEY)
+                           REFRESH_TOKEN_EXPIRE_DAYS, SECRET_KEY)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -68,7 +67,7 @@ def create_access_token_object(info, email: str, password: str) -> dict:
         if not verify_hash_data(password, registered_password):
             # TODO: エラーレスポンスの実装
             raise HTTPException(status_code=401)
-        expiration_date = create_access_token_object_exp()
+        expiration_date = create_access_token_exp()
         # ulid、トークンタイプ、有効期限をもとにJWTを発行
         token_payload = {
             'ulid': ulid,
@@ -115,7 +114,7 @@ def validate_access_token(access_token: str):
 
 
 # アクセストークンの有効期限を作成
-def create_access_token_object_exp():
+def create_access_token_exp():
     return datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
 

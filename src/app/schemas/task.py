@@ -12,6 +12,7 @@ class TaskNode(SQLAlchemyObjectType):
         interfaces = (graphene.relay.Node,)
 
 
+# タスクの作成
 class CreateTask(graphene.Mutation):
     class Arguments:
         title = graphene.String(required=True)
@@ -22,6 +23,7 @@ class CreateTask(graphene.Mutation):
     @staticmethod
     def mutate(root, info, **kwargs):
         try:
+            # 完了フラグはデフォルトでFalseに設定
             db_task = task.TaskModel(title=kwargs.get('title'),
                                     content=kwargs.get('content'),
                                     is_done=False)
@@ -36,6 +38,7 @@ class CreateTask(graphene.Mutation):
             db.close()
 
 
+# タスクの更新
 class UpdateTask(graphene.Mutation):
     class Arguments:
         id = graphene.ID(required=True)
@@ -64,6 +67,7 @@ class UpdateTask(graphene.Mutation):
             db.close()
 
 
+# タスクの削除
 class DeleteTask(graphene.Mutation):
     class Arguments:
         id = graphene.ID(required=True)

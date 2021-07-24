@@ -88,7 +88,7 @@ class UpdateProofCustomUser(graphene.Mutation):
             db.close()
 
 
-# ユーザーの削除
+# ユーザーの削除（本人のみしか削除できないようにする）
 class DeleteCustomUser(graphene.Mutation):
     class Arguments:
         id = graphene.ID(required=True)

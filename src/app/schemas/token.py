@@ -1,18 +1,14 @@
 from datetime import datetime
-from uuid import uuid4
 
 import graphene
-from app.libs.auth import (create_access_token, create_access_token_object_exp,
-                           create_refresh_token_exp)
 from database.database import db
 from fastapi import HTTPException
-from jose import JWTError, jwt
-from libs.auth import (create_access_token_object, create_refresh_token,
-                       get_current_custom_user, verify_hash_data)
+from libs.auth import (create_access_token, create_access_token_exp,
+                       create_access_token_object, create_refresh_token,
+                       create_refresh_token_exp, get_current_custom_user,
+                       verify_hash_data)
 from models.custom_user import CustomUserModel
 from models.token import RefreshTokenModel
-from settings.envs import (ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM,
-                           REFRESH_TOKEN_EXPIRE_DAYS, SECRET_KEY)
 
 
 # アクセストークンの発行 DBに保存はしない。
@@ -93,7 +89,7 @@ class UpdateTokens(graphene.Mutation):
             # 新しいアクセストークンの作成
             ulid = old_refresh_token.token_holder
             # アクセストークンの作成
-            access_token_expiration_date = create_access_token_object_exp()
+            access_token_expiration_date = create_access_token_exp()
             # ulid、トークンタイプ、有効期限をもとにJWTを発行
             token_payload = {
                 'ulid': ulid,

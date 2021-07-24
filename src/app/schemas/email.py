@@ -1,6 +1,6 @@
 import graphene
 from fastapi_mail import FastMail, MessageSchema
-from libs.auth import create_access_token_object, verify_hash_data
+from libs.auth import create_access_token_object
 from settings.envs import MAIL_CONFIGS
 
 

@@ -2,12 +2,9 @@ from sys import path
 
 import graphene
 from fastapi import FastAPI
-from fastapi_mail import FastMail, MessageSchema
-from starlette.background import BackgroundTasks
 from starlette.graphql import GraphQLApp
 
 from database.database import Base, db_session, engine
-# from libs.auth import send_email_background
 from schemas.all_schemas import Mutation, Query
 
 path.append('../')
