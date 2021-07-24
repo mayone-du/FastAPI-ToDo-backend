@@ -91,7 +91,7 @@ def create_access_token_object(info, email: str, password: str) -> dict:
 # アクセストークンを検証する。デコレーターにした方がよいかも
 def validate_access_token(access_token: str):
     try:
-        now = datetime.utcnow().timestamp()
+        now = datetime.utcnow()
         payload: dict = jwt.decode(access_token,
                                    SECRET_KEY,
                                    algorithms=[ALGORITHM])
