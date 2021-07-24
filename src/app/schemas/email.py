@@ -1,6 +1,6 @@
 import graphene
 from fastapi_mail import FastMail, MessageSchema
-from libs.auth import create_access_token, verify_hash_data
+from libs.auth import create_access_token_object, verify_hash_data
 from settings.envs import MAIL_CONFIGS
 
 
@@ -17,7 +17,7 @@ class SendMagicLinkEmail(graphene.Mutation):
         try:
             # アクセストークンを作成
             # TODO: リファクタ（関数名がややこしい。内部でユーザーが存在するかの検証まで行っている。）
-            access_token_object: dict = create_access_token(info, email=kwargs.get('email'), password=kwargs.get('password'))
+            access_token_object: dict = create_access_token_object(info, email=kwargs.get('email'), password=kwargs.get('password'))
             # バックグラウンドタスクで非優先的に、同期的にメールを送信
             background = info.context["background"]
             email_body = f'''

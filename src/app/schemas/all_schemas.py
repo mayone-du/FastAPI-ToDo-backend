@@ -52,7 +52,7 @@ class Mutation(graphene.ObjectType):
     delete_task = DeleteTask.Field()
 
     # auth
-    create_access_token = CreateAccessToken.Field()
+    create_access_token_object = CreateAccessToken.Field()
     create_refresh_token = CreateRefreshToken.Field()
     update_tokens = UpdateTokens.Field()
     send_magic_link_email = SendMagicLinkEmail.Field()

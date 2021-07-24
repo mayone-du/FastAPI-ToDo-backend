@@ -66,18 +66,17 @@ class UpdateCustomUser(graphene.Mutation):
 
 
 
-# 初回認証時に呼ばれる関数。CookieからJWTを受け取って検証し、本人確認のフラグをTrueにする
+# 初回認証時に呼ばれる関数。リクエストヘッダーからJWTを受け取って検証し、本人確認のフラグをTrueにする
 class UpdateProofCustomUser(graphene.Mutation):
     ok = graphene.Boolean()
 
     @staticmethod
     def mutate(root, info, **kwargs):
         try:
-            # cookieヘッダーのauthorizatoinからJWTを取得
-            # TODO: tokenをvalidation
-            # ユーザーの本人確認フラグを更新
+            # リクエストヘッダーからJWTを取得してユーザーの検証と取得
             from libs.auth import get_current_custom_user
             current_user: CustomUserModel = get_current_custom_user(info)           
+            # ユーザーの本人確認フラグを更新
             current_user.is_proof = True
             db.commit()
             ok=True

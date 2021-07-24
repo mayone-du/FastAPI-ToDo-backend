@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from uuid import uuid4
 
 import bcrypt
 from database.database import db
@@ -9,7 +10,7 @@ from models.custom_user import CustomUserModel
 from passlib.context import CryptContext
 from schemas.custom_user import CustomUserNode
 from settings.envs import (ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM,
-                           MAIL_CONFIGS, SECRET_KEY)
+                           MAIL_CONFIGS, REFRESH_TOKEN_EXPIRE_DAYS, SECRET_KEY)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -28,7 +29,7 @@ def verify_hash_data(plain_data: str, hashed_data: str):
                           hashed_data.encode('utf-8'))
 
 
-# Cookieのheadersのauthorizationからjwtを取得し、decodeしてpayloadのulidを取得し、そのulidと紐づくユーザーを返す
+# Authorizationヘッダーからjwtを取得し、decodeしてpayloadのulidを取得し、そのulidと紐づくユーザーを返す
 def get_current_custom_user(info) -> CustomUserModel:
     try:
         # headersのauthorizationからjwtを取得
@@ -49,8 +50,13 @@ def get_current_custom_user(info) -> CustomUserModel:
 
 
 # アクセストークンの作成
+def create_access_token(token_payload: dict):
+    return jwt.encode(token_payload, SECRET_KEY, algorithm=ALGORITHM)
+
+
+# アクセストークンの作成
 # TODO: リファクタ もっとやることを絞って専門性をもたせる
-def create_access_token(info, email: str, password: str) -> dict:
+def create_access_token_object(info, email: str, password: str) -> dict:
     try:
         # emailからそのユーザーのインスタンスを取得
         user = CustomUserNode.get_query(info).filter(
@@ -62,8 +68,7 @@ def create_access_token(info, email: str, password: str) -> dict:
         if not verify_hash_data(password, registered_password):
             # TODO: エラーレスポンスの実装
             raise HTTPException(status_code=401)
-        expiration_date = datetime.utcnow() + timedelta(
-            minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expiration_date = create_access_token_object_exp()
         # ulid、トークンタイプ、有効期限をもとにJWTを発行
         token_payload = {
             'ulid': ulid,
@@ -72,9 +77,7 @@ def create_access_token(info, email: str, password: str) -> dict:
             # 有効期限をUTCタイムスタンプ形式で設定
             'exp': expiration_date
         }
-        access_token = jwt.encode(token_payload,
-                                  SECRET_KEY,
-                                  algorithm=ALGORITHM)
+        access_token = create_access_token(token_payload)
         access_token_object = {
             'access_token': access_token,
             'expiration_date': str(expiration_date)
@@ -109,3 +112,18 @@ def validate_access_token(access_token: str):
             raise
     except:
         raise
+
+
+# アクセストークンの有効期限を作成
+def create_access_token_object_exp():
+    return datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+
+
+# リフレッシュトークンの作成
+def create_refresh_token():
+    return uuid4().hex
+
+
+# リフレッシュトークンの有効期限を作成
+def create_refresh_token_exp():
+    return datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
