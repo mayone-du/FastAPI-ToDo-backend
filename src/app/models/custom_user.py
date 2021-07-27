@@ -18,6 +18,6 @@ class CustomUserModel(Base):
     password = Column(String, nullable=False)
     full_name = Column(String(255))
     # 本人確認確認フラグ マジックリンクをクリックしたらTrueに更新する
-    is_proof = Column(Boolean, nullable=False, default=False)
+    is_verified = Column(Boolean, nullable=False, default=False)
     tasks = relationship('TaskModel')
     refresh_token = relationship('RefreshTokenModel')

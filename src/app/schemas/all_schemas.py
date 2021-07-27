@@ -5,7 +5,7 @@ from graphql_relay import from_global_id
 from models.custom_user import CustomUserModel
 
 from .custom_user import (CreateCustomUser, CustomUserNode,
-                          UpdateProofCustomUser)
+                          UpdateVerifyCustomUser)
 from .email import SendMagicLinkEmail
 from .task import CreateTask, DeleteTask, TaskNode, UpdateTask
 from .token import (CreateAccessToken, CreateRefreshToken, ReAuthentication,
@@ -41,8 +41,8 @@ class Query(graphene.ObjectType):
 
 class Mutation(graphene.ObjectType):
     # user
-    create_user = CreateCustomUser.Field()
-    update_proof_custom_user = UpdateProofCustomUser.Field()
+    create_custom_user = CreateCustomUser.Field()
+    update_verify_custom_user = UpdateVerifyCustomUser.Field()
 
     # task
     create_task = CreateTask.Field()

@@ -67,7 +67,7 @@ class UpdateCustomUser(graphene.Mutation):
 
 
 # 初回認証時に呼ばれる関数。リクエストヘッダーからJWTを受け取って検証し、本人確認のフラグをTrueにする
-class UpdateProofCustomUser(graphene.Mutation):
+class UpdateVerifyCustomUser(graphene.Mutation):
     ok = graphene.Boolean()
 
     @staticmethod
@@ -77,10 +77,10 @@ class UpdateProofCustomUser(graphene.Mutation):
             from libs.auth import get_current_custom_user
             current_user: CustomUserModel = get_current_custom_user(info)           
             # ユーザーの本人確認フラグを更新
-            current_user.is_proof = True
+            current_user.is_verified = True
             db.commit()
             ok=True
-            return UpdateProofCustomUser(ok=ok)
+            return UpdateVerifyCustomUser(ok=ok)
         except:
             db.rollback()
             raise

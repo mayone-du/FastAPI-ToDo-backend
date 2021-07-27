@@ -18,7 +18,6 @@ class SendMagicLinkEmail(graphene.Mutation):
             # アクセストークンを作成
             # TODO: リファクタ（関数名がややこしい。内部でユーザーが存在するかの検証まで行っている。）
             access_token_object: dict = create_access_token_object(info, email=kwargs.get('email'), password=kwargs.get('password'))
-            # バックグラウンドタスクで非優先的に、同期的にメールを送信
             background = info.context["background"]
             email_body = f'''
                 <h1>本登録のご案内</h1>
@@ -33,6 +32,7 @@ class SendMagicLinkEmail(graphene.Mutation):
                 subtype='html',
             )
             fm = FastMail(MAIL_CONFIGS)
+            # バックグラウンドタスクで非優先的に、同期的にメールを送信
             background.add_task(fm.send_message, message)
             ok=True
             return SendMagicLinkEmail(ok=ok)
