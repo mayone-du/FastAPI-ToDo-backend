@@ -1,4 +1,5 @@
 import graphene
+from app.libs.decorators import login_required
 from app.models.task import TaskModel
 from database.database import db
 from graphene_sqlalchemy import SQLAlchemyObjectType
@@ -21,6 +22,7 @@ class CreateTask(graphene.Mutation):
     ok = graphene.Boolean()
 
     @staticmethod
+    @login_required
     def mutate(root, info, **kwargs):
         try:
             # 完了フラグはデフォルトでFalseに設定

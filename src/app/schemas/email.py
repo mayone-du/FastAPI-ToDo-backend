@@ -4,7 +4,7 @@ from libs.auth import create_access_token_object
 from settings.envs import MAIL_CONFIGS
 
 
-# マジックリンクを送信
+# マジックリンクを送信（ユーザー作成時に送ったメールの有効期限が切れた場合に再度送信する用）
 class SendMagicLinkEmail(graphene.Mutation):
     class Arguments:
         email = graphene.String(required=True)
@@ -14,6 +14,7 @@ class SendMagicLinkEmail(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, **kwargs):
+        # TODO： メール送信自体を一つの関数にリファクタ
         try:
             # アクセストークンを作成
             # TODO: リファクタ（関数名がややこしい。内部でユーザーが存在するかの検証まで行っている。）
@@ -21,7 +22,7 @@ class SendMagicLinkEmail(graphene.Mutation):
             background = info.context["background"]
             email_body = f'''
                 <h1>本登録のご案内</h1>
-                <p><br><a href="https://google.com">こちらのリンク</a>
+                <p><br><a href="https://sample.vercel.app/auth?token={access_token_object.get('access_token')}">こちらのリンク</a>
                 をクリックすると本登録が完了します。有効期限は30分です。</p>
                 <p><a href="https://mayoblog.vercel.app/search/results?keyword={access_token_object.get('access_token')}">Link</a></p>
             '''

@@ -28,7 +28,31 @@ def verify_hash_data(plain_data: str, hashed_data: str):
                           hashed_data.encode('utf-8'))
 
 
-# Authorizationヘッダーからjwtを取得し、decodeしてpayloadのulidを取得し、そのulidと紐づくユーザーを返す
+# TODO: tokenのpayloadについて考えたりエラーハンドリングなど
+# アクセストークンが有効かどうか検証する。デコレーターにした方がよいかも
+def validate_access_token(access_token: str):
+    try:
+        now = datetime.utcnow()
+        payload: dict = jwt.decode(access_token,
+                                   SECRET_KEY,
+                                   algorithms=[ALGORITHM])
+        ulid = payload.get('ulid')
+        expiration_date = payload.get('exp')
+
+        # ulidに紐づくユーザーがいなかったらエラー
+        if db.query(CustomUserModel).filter(
+                CustomUserModel.ulid == ulid).first() is None:
+            raise
+        # TODO: emailでの本人確認が済んでいるか確認
+        # DBへ直接問い合わせ
+        # 有効期限が過ぎていたらエラー処理
+        if now > expiration_date:
+            raise
+    except:
+        raise
+
+
+# Authorizationヘッダーからjwtを取得し、decodeしてpayloadのulidを取得し、そのulidと紐づくユーザーを返す。
 def get_current_custom_user(info) -> CustomUserModel:
     try:
         # headersのauthorizationからjwtを取得
@@ -39,8 +63,6 @@ def get_current_custom_user(info) -> CustomUserModel:
         payload: dict = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         ulid = payload.get('ulid')
         # ulidに紐づくユーザーを返却
-        # TODO: token自体の検証（有効期限など）
-        validate_access_token(token)
         return CustomUserNode.get_query(info).filter(
             CustomUserModel.ulid == ulid).first()
     except:
@@ -58,7 +80,7 @@ def create_access_token(token_payload: dict):
 def create_access_token_object(info, email: str, password: str) -> dict:
     try:
         # emailからそのユーザーのインスタンスを取得
-        user = CustomUserNode.get_query(info).filter(
+        user: CustomUserModel = CustomUserNode.get_query(info).filter(
             CustomUserModel.email == email).first()
         # 登録済みのハッシュ化されたパスワード
         registered_password = user.password
@@ -68,11 +90,10 @@ def create_access_token_object(info, email: str, password: str) -> dict:
             # TODO: エラーレスポンスの実装
             raise HTTPException(status_code=401)
         expiration_date = create_access_token_exp()
-        # ulid、トークンタイプ、有効期限をもとにJWTを発行
+        # ulid、発行時刻、有効期限をもとにJWTを発行 ulidはカスタムクレーム。
         token_payload = {
             'ulid': ulid,
-            # access_token or refresh_token
-            'type': 'access_token',
+            'iat': datetime.utcnow(),
             # 有効期限をUTCタイムスタンプ形式で設定
             'exp': expiration_date
         }
@@ -84,32 +105,6 @@ def create_access_token_object(info, email: str, password: str) -> dict:
         return access_token_object
     except:
         # TODO: エラーレスポンスの実装
-        raise
-
-
-# TODO: tokenのpayloadについて考えたりエラーハンドリングなど
-# アクセストークンを検証する。デコレーターにした方がよいかも
-def validate_access_token(access_token: str):
-    try:
-        now = datetime.utcnow()
-        payload: dict = jwt.decode(access_token,
-                                   SECRET_KEY,
-                                   algorithms=[ALGORITHM])
-        ulid = payload.get('ulid')
-        token_type = payload.get('type')
-        expiration_date = payload.get('exp')
-
-        # ulidに紐づくユーザーがいなかったらエラー
-        if db.query(CustomUserModel).filter(
-                CustomUserModel.ulid == ulid).first() is None:
-            raise
-        # トークンタイプがaccess_tokenじゃなかったらエラー（トークンに持たせるpayloadについては要検討）
-        if token_type != 'access_token':
-            raise
-        # 有効期限が過ぎていたらエラー処理
-        if now > expiration_date:
-            raise
-    except:
         raise
 
 

@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import graphene
+from app.schemas.custom_user import CustomUserNode
 from database.database import db
 from fastapi import HTTPException
 from libs.auth import (create_access_token, create_access_token_exp,
@@ -9,6 +10,7 @@ from libs.auth import (create_access_token, create_access_token_exp,
                        verify_hash_data)
 from models.custom_user import CustomUserModel
 from models.token import RefreshTokenModel
+from pytz import UTC
 
 
 # アクセストークンの発行 DBに保存はしない。
@@ -42,6 +44,8 @@ class CreateRefreshToken(graphene.Mutation):
     @staticmethod
     def mutate(root, info):
         try:
+            # TODO: 既にリフレッシュトークンを作成していたらエラーにする。 JWTで判別ではなく、DBへ問い合わせて検証する。
+            # ユーザーを取得
             ulid = get_current_custom_user(info).ulid
             # UUIDを生成してリフレッシュトークンとする
             uuid = create_refresh_token()
@@ -56,7 +60,7 @@ class CreateRefreshToken(graphene.Mutation):
             return CreateRefreshToken(refresh_token_object=refresh_token_object)
         except:
             db.rollback()
-            raise
+            raise HTTPException(status_code=400, detail="リフレッシュトークン作成中のエラーです")
         finally:
             db.close()
 
@@ -79,7 +83,7 @@ class UpdateTokens(graphene.Mutation):
             # 2種類のトークンを再発行し、もともとDBに保存しているリフレッシュトークンの値を更新する
             old_refresh_token = db.query(RefreshTokenModel).filter(RefreshTokenModel.uuid==kwargs.get('old_refresh_token')).first()
             # 受け取ったトークンの有効期限が切れてないか検証
-            if old_refresh_token.expiration_date < datetime.utcnow():
+            if old_refresh_token.expiration_date.replace(tzinfo=UTC) < datetime.utcnow().replace(tzinfo=UTC):
                 raise
             # リフレッシュトークンを作成して更新
             new_refresh_token = create_refresh_token()
@@ -88,12 +92,14 @@ class UpdateTokens(graphene.Mutation):
             old_refresh_token.expiration_date = refresh_token_expiration_date
             # 新しいアクセストークンの作成
             ulid = old_refresh_token.token_holder
+            is_verified = db.query(CustomUserModel).filter(CustomUserModel.ulid==ulid).first().is_verified
             # アクセストークンの作成
             access_token_expiration_date = create_access_token_exp()
             # ulid、トークンタイプ、有効期限をもとにJWTを発行
             token_payload = {
                 'ulid': ulid,
-                'type': 'access_token',
+                'is_verified': is_verified,
+                'iat': datetime.utcnow(),
                 'exp': access_token_expiration_date
             }
             access_token = create_access_token(token_payload)
