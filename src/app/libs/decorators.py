@@ -29,9 +29,8 @@ def login_required(function):
             if not user.is_verified:
                 raise HTTPException(status_code=400, detail="本人確認がまだです。")
             # 有効期限が過ぎていたらエラー処理
-            if datetime.utcnow() > payload.get('exp'):
+            if datetime.utcnow().timestamp() > payload.get('exp'):
                 raise HTTPException(status_code=400, detail="有効期限が切れています。")
-            print('トークンは有効です。')
             result = function(root, info, **kwargs)
             return result
         except:

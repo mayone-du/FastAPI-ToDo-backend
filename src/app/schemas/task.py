@@ -1,4 +1,5 @@
 import graphene
+from app.libs.auth import get_current_custom_user
 from app.libs.decorators import login_required
 from app.models.task import TaskModel
 from database.database import db
@@ -28,6 +29,7 @@ class CreateTask(graphene.Mutation):
             # 完了フラグはデフォルトでFalseに設定
             db_task = task.TaskModel(title=kwargs.get('title'),
                                     content=kwargs.get('content'),
+                                    task_creator=get_current_custom_user(info).ulid,
                                     is_done=False)
             db.add(db_task)
             db.commit()

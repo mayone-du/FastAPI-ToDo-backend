@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import graphene
 from database.database import db
 from fastapi.exceptions import HTTPException
@@ -5,6 +7,7 @@ from fastapi_mail.fastmail import FastMail
 from fastapi_mail.schemas import MessageSchema
 from graphene_sqlalchemy.types import SQLAlchemyObjectType
 from models.custom_user import CustomUserModel
+from models.token import RefreshTokenModel
 from settings.envs import MAIL_CONFIGS
 from ulid import ULID
 
@@ -30,21 +33,28 @@ class CreateCustomUser(graphene.Mutation):
     def mutate(root, info, **kwargs):
         try:
             # circular import回避のためここでimport
-            from libs.auth import create_access_token_object, hash_data
+            from libs.auth import (create_access_token,
+                                   create_access_token_exp, hash_data)
             new_user = CustomUserModel(ulid=str(ULID()), username=kwargs.get('username'),
                                     email=kwargs.get('email'),
                                     # ユーザーが登録したパスワードをハッシュ化して保存
                                     password=hash_data(kwargs.get('password')))
             db.add(new_user)
             db.commit()
-            access_token_object: dict = create_access_token_object(info, email=kwargs.get('email'), password=kwargs.get('password'))
+            # アクセストークンを作成
+            payload = {
+                "ulid": new_user.ulid,
+                "iat": datetime.utcnow(),
+                "exp": create_access_token_exp()
+            }
+            access_token = create_access_token(payload)
             # メール送信
             background = info.context["background"]
             email_body = f'''
                 <h1>本登録のご案内</h1>
-                <p><br><a href="https://sample.vercel.app/auth?token={access_token_object.get('access_token')}">こちらのリンク</a>
+                <p><br><a href="https://sample.vercel.app/auth?token={access_token}">こちらのリンク</a>
                 をクリックすると本登録が完了します。有効期限は30分です。</p>
-                <p><a href="https://mayoblog.vercel.app/search/results?keyword={access_token_object.get('access_token')}">Link</a></p>
+                <p><a href="https://mayoblog.vercel.app/search/results?keyword={access_token}">Link</a></p>
             '''
             message = MessageSchema(
                 subject='Webアプリ 本登録のご案内',
@@ -96,7 +106,7 @@ class UpdateVerifyCustomUser(graphene.Mutation):
     ) 
 
     @staticmethod
-    def mutate(root, info, **kwargs):
+    def mutate(root, info):
         try:
             # リクエストヘッダーからJWTを取得してユーザーの検証と取得
             from libs.auth import (create_refresh_token,
@@ -108,12 +118,16 @@ class UpdateVerifyCustomUser(graphene.Mutation):
                 raise HTTPException(status_code=400, detail="既に本人確認済みです。")
             # ユーザーの本人確認フラグを更新
             current_user.is_verified = True
-            db.commit()
             
+            refresh_token = create_refresh_token()
+            refresh_token_exp = create_refresh_token_exp()
+            db_refresh_token = RefreshTokenModel(uuid=refresh_token, token_holder=current_user.ulid, expiration_date=refresh_token_exp)
+            db.add(db_refresh_token)
             refresh_token_object = {
-                "refresh_token" : create_refresh_token(),
-                "expiration_date": str(create_refresh_token_exp())
+                "refresh_token" : refresh_token,
+                "expiration_date": str(refresh_token_exp)
             }
+            db.commit()
             return UpdateVerifyCustomUser(refresh_token_object=refresh_token_object)
         except:
             db.rollback()

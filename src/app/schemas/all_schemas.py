@@ -8,8 +8,7 @@ from .custom_user import (CreateCustomUser, CustomUserNode,
                           UpdateVerifyCustomUser)
 from .email import SendMagicLinkEmail
 from .task import CreateTask, DeleteTask, TaskNode, UpdateTask
-from .token import (CreateAccessToken, CreateRefreshToken, ReAuthentication,
-                    UpdateTokens)
+from .token import ReAuthentication, UpdateTokens
 
 
 class Query(graphene.ObjectType):
@@ -50,8 +49,6 @@ class Mutation(graphene.ObjectType):
     delete_task = DeleteTask.Field()
 
     # auth
-    create_access_token_object = CreateAccessToken.Field()
-    create_refresh_token = CreateRefreshToken.Field()
     update_tokens = UpdateTokens.Field()
     send_magic_link_email = SendMagicLinkEmail.Field()
     re_authentication = ReAuthentication.Field()
