@@ -47,17 +47,18 @@ class CreateCustomUser(graphene.Mutation):
             db_session.add(new_user)
             db_session.commit()
             # アクセストークンを作成
+            access_token_exp = create_access_token_exp()
             payload = {
                 "ulid": new_user.ulid,
                 "iat": datetime.utcnow(),
-                "exp": create_access_token_exp()
+                "exp": access_token_exp
             }
             access_token = create_access_token(payload)
             # メール送信
             background = info.context["background"]
             email_body = f'''
                 <h1>本登録のご案内</h1>
-                <p><br><a href="https://sample.vercel.app/auth?token={access_token}">こちらのリンク</a>
+                <p><br><a href="http://localhost:3000/auth/verify?token={access_token}&exp={access_token_exp.timestamp()}">こちらのリンク</a>
                 をクリックすると本登録が完了します。有効期限は30分です。</p>
                 <p><a href="https://mayoblog.vercel.app/search/results?keyword={access_token}">Link</a></p>
             '''

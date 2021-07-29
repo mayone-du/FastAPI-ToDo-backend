@@ -2,6 +2,7 @@ from sys import path
 
 import graphene
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.graphql import GraphQLApp
 
 from database.database import Base, db_session, engine
@@ -27,7 +28,7 @@ app.add_route(
 @app.on_event("startup")
 async def startup_event():
     # テーブルのリセットをしたいときはコメントを解除
-    # Base.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(bind=engine)
     # 起動時にテーブルを作成
     Base.metadata.create_all(bind=engine)
 
@@ -36,3 +37,17 @@ async def startup_event():
 @app.on_event("shutdown")
 def shutdown_event():
     db_session.remove()
+
+
+# ミドルウェアでcorsの設定
+origins = [
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
