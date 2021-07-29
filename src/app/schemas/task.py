@@ -1,5 +1,5 @@
 import graphene
-from database.database import db
+from database.database import db_session
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from graphql_relay.node.node import from_global_id
 from libs.auth import get_current_custom_user
@@ -35,15 +35,15 @@ class CreateTask(graphene.Mutation):
                                     content=kwargs.get('content'),
                                     task_creator_ulid=get_current_custom_user(info).ulid,
                                     is_done=False)
-            db.add(db_task)
-            db.commit()
+            db_session.add(db_task)
+            db_session.commit()
             ok = True
             return CreateTask(ok=ok)
         except:
-            db.rollback()
+            db_session.rollback()
             raise
         finally:
-            db.close()
+            db_session.close()
 
 
 # タスクの更新
@@ -65,14 +65,14 @@ class UpdateTask(graphene.Mutation):
             current_task.title=kwargs.get('title')
             current_task.content=kwargs.get('content')
             current_task.is_done=kwargs.get('is_done')
-            db.commit()
+            db_session.commit()
             ok = True
             return UpdateTask(ok=ok)
         except:
-            db.rollback()
+            db_session.rollback()
             raise
         finally:
-            db.close()
+            db_session.close()
 
 
 # タスクの削除
@@ -83,8 +83,11 @@ class DeleteTask(graphene.Mutation):
     ok = graphene.Boolean()
 
     @staticmethod
-    def mutate(root, info):
+    def mutate(root, info, **kwargs):
         try:
+            task: TaskNode= TaskNode.get_query(info).filter(TaskModel.id==from_global_id(kwargs.get('id'))[1]).first()
+            db_session.delete(task)
+            db_session.commit()
             ok = True
             return DeleteTask(ok=ok)
         except:

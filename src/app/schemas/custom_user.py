@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import graphene
-from database.database import db
+from database.database import db_session
 from fastapi.exceptions import HTTPException
 from fastapi_mail.fastmail import FastMail
 from fastapi_mail.schemas import MessageSchema
@@ -44,8 +44,8 @@ class CreateCustomUser(graphene.Mutation):
                                     # ユーザーが登録したパスワードをハッシュ化して保存
                                     password=hash_data(kwargs.get('password')),
                                     is_verified=False)
-            db.add(new_user)
-            db.commit()
+            db_session.add(new_user)
+            db_session.commit()
             # アクセストークンを作成
             payload = {
                 "ulid": new_user.ulid,
@@ -73,10 +73,10 @@ class CreateCustomUser(graphene.Mutation):
             ok = True
             return CreateCustomUser(ok=ok)
         except:
-            db.rollback()
+            db_session.rollback()
             raise
         finally:
-            db.close()
+            db_session.close()
 
 
 # 基本的なユーザー情報の更新 別でProfileモデルなどを作成し、Optional的な内容はそちらに持たせると良いかも。
@@ -90,14 +90,14 @@ class UpdateCustomUser(graphene.Mutation):
     def mutate(root, info, **kwargs):
         try:
             # TODO: ユーザー情報更新機能の実装
-            # db.commit()
+            # db_session.commit()
             ok=True
             return UpdateCustomUser(ok=ok)
         except:
-            db.rollback()
+            db_session.rollback()
             raise
         finally:
-            db.close()
+            db_session.close()
 
 
 
@@ -123,23 +123,23 @@ class UpdateVerifyCustomUser(graphene.Mutation):
                 raise HTTPException(status_code=400, detail="既に本人確認済みです。")
             # ユーザーの本人確認フラグを更新
             current_user.is_verified = True
-            db.commit()
+            db_session.commit()
             
             refresh_token = create_refresh_token()
             refresh_token_exp = create_refresh_token_exp()
             db_refresh_token = RefreshTokenModel(uuid=refresh_token, token_holder=current_user.ulid, expiration_date=refresh_token_exp)
-            db.add(db_refresh_token)
+            db_session.add(db_refresh_token)
             refresh_token_object = {
                 "refresh_token" : refresh_token,
                 "expiration_date": str(refresh_token_exp)
             }
-            db.commit()
+            db_session.commit()
             return UpdateVerifyCustomUser(refresh_token_object=refresh_token_object)
         except:
-            db.rollback()
+            db_session.rollback()
             raise
         finally:
-            db.close()
+            db_session.close()
 
 
 # ユーザーの削除（本人のみしか削除できないようにする）
@@ -156,8 +156,8 @@ class DeleteCustomUser(graphene.Mutation):
             # user = get_current_custom_user(info)
             ok=True
         except:
-            db.rollback()
+            db_session.rollback()
             raise
         finally:
-            db.close()
+            db_session.close()
             return DeleteCustomUser(ok=ok)

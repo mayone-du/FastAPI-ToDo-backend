@@ -2,7 +2,7 @@ from datetime import datetime
 
 import graphene
 from app.schemas.custom_user import CustomUserNode
-from database.database import db
+from database.database import db_session
 from fastapi import HTTPException
 from libs.auth import (create_access_token, create_access_token_exp,
                        create_refresh_token, create_refresh_token_exp,
@@ -28,7 +28,7 @@ class UpdateTokens(graphene.Mutation):
     def mutate(root, info, **kwargs):
         try:
             # 2種類のトークンを再発行し、もともとDBに保存しているリフレッシュトークンの値を更新する
-            old_refresh_token = db.query(RefreshTokenModel).filter(RefreshTokenModel.uuid==kwargs.get('old_refresh_token')).first()
+            old_refresh_token = db_session.query(RefreshTokenModel).filter(RefreshTokenModel.uuid==kwargs.get('old_refresh_token')).first()
             # 受け取ったトークンの有効期限が切れてないか検証
             if old_refresh_token.expiration_date.replace(tzinfo=UTC) < datetime.utcnow().replace(tzinfo=UTC):
                 raise
@@ -48,7 +48,7 @@ class UpdateTokens(graphene.Mutation):
                 'exp': access_token_expiration_date
             }
             access_token = create_access_token(token_payload)
-            db.commit()
+            db_session.commit()
             tokens_object = {
                 'access_token': access_token,
                 'access_token_exp': str(access_token_expiration_date),
@@ -57,10 +57,10 @@ class UpdateTokens(graphene.Mutation):
             }
             return UpdateTokens(tokens_object=tokens_object)
         except:
-            db.rollback()
+            db_session.rollback()
             raise
         finally:
-            db.close()
+            db_session.close()
 
 
 # リフレッシュトークンの有効期限がきれて再度emailとpasswordでログインする場合
@@ -81,7 +81,7 @@ class ReAuthentication(graphene.Mutation):
         try:
             input_email = kwargs.get('email')
             input_password = kwargs.get('password')
-            user = db.query(CustomUserModel).filter(CustomUserModel.email==input_email).first()
+            user = db_session.query(CustomUserModel).filter(CustomUserModel.email==input_email).first()
             # emailとpasswordからユーザーのulidを取得、検証
             if verify_hash_data(input_password, user.password) == False:
                 raise
@@ -96,10 +96,10 @@ class ReAuthentication(graphene.Mutation):
             new_refresh_token = create_refresh_token()
             refresh_token_expiration_date = create_refresh_token_exp()
             # リフレッシュトークンを取得
-            old_refresh_token = db.query(RefreshTokenModel).filter(RefreshTokenModel.token_holder==user.ulid).first()
+            old_refresh_token = db_session.query(RefreshTokenModel).filter(RefreshTokenModel.token_holder==user.ulid).first()
             # 更新
             old_refresh_token.uuid=new_refresh_token
-            db.commit()
+            db_session.commit()
             tokens_object = {
                 'access_token': access_token,
                 'access_token_exp': str(access_token_exp),
@@ -108,10 +108,10 @@ class ReAuthentication(graphene.Mutation):
             }
             return ReAuthentication(tokens_object=tokens_object)
         except:
-            db.rollback()
+            db_session.rollback()
             raise
         finally:
-            db.close()
+            db_session.close()
 
 
 
@@ -126,13 +126,13 @@ class DeleteRefreshToken(graphene.Mutation):
     def mutate(root, info, **kwargs):
         try:
             # TODO: ユーザーのulidをもとに削除
-            db.delete()
+            db_session.delete()
             ok=True
         except:
-            db.rollback()
+            db_session.rollback()
             raise
         finally:
-            db.close()
+            db_session.close()
         return DeleteRefreshToken(ok=ok)
 
 

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from uuid import uuid4
 
 import bcrypt
-from database.database import db
+from database.database import db_session
 from fastapi import HTTPException
 from jose import jwt
 from models.custom_user import CustomUserModel

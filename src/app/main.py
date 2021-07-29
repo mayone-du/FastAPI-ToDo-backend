@@ -16,7 +16,7 @@ app = FastAPI()
 #     try:
 #         yield db
 #     finally:
-#         db.close()
+#         db_session.close()
 
 app.add_route(
     "/graphql",

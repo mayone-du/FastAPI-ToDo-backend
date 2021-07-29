@@ -15,4 +15,4 @@ db_session = scoped_session(
 Base = declarative_base()
 Base.query = db_session.query_property()
 
-db: scoped_session = db_session.session_factory()
+# db: scoped_session = db_session.session_factory()
