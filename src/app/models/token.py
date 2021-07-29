@@ -14,6 +14,5 @@ class RefreshTokenModel(Base):
     # UUIDをアプリケーション側で作成し保存する
     uuid = Column(UUID(as_uuid=True), unique=True, nullable=False)
     # TODO: one-to-oneの関係にできるようにする
-    # TODO: 逆参照できるようにする
     token_holder = Column(String, ForeignKey('custom_users.ulid'), nullable=False, unique=True)
     expiration_date = Column(DateTime(timezone=True), nullable=False)

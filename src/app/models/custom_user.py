@@ -24,4 +24,4 @@ class CustomUserModel(Base):
     # tasks = relationship('TaskModel', back_populates='custom_users')
     # tasks = relationship('TaskModel', backref='custom_users')
     tasks = relationship('TaskModel')
-    refresh_token = relationship('RefreshTokenModel')
+    # refresh_token = relationship('RefreshTokenModel')

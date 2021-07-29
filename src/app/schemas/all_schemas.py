@@ -3,6 +3,7 @@ from graphene_sqlalchemy.fields import SQLAlchemyConnectionField
 from graphql_relay import from_global_id
 from libs.auth import get_current_custom_user  # , send_email_background
 from models.custom_user import CustomUserModel
+from models.task import TaskModel
 
 from .custom_user import (CreateCustomUser, CustomUserNode,
                           UpdateVerifyCustomUser)
@@ -17,6 +18,7 @@ class Query(graphene.ObjectType):
     current_user = graphene.Field(CustomUserNode)
     user = graphene.Field(CustomUserNode, id=graphene.NonNull(graphene.ID))
     all_users = SQLAlchemyConnectionField(CustomUserNode)
+    task = graphene.Field(TaskNode, id=graphene.NonNull(graphene.ID))
     all_tasks = SQLAlchemyConnectionField(TaskNode)
 
     # 現在ログインしているユーザーを取得
@@ -33,6 +35,11 @@ class Query(graphene.ObjectType):
     def resolve_all_users(self, info):
         query = CustomUserNode.get_query(info)
         return query.all()
+
+    # idからタスクを取得
+    def resolve_task(self, info, id):
+        query = TaskNode.get_query(info).filter(TaskModel.id==from_global_id(id)[1]).first()
+        return query
 
     # すべてのタスクを取得
     def resolve_all_tasks(self, info):

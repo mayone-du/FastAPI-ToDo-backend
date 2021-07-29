@@ -5,7 +5,11 @@ from graphql_relay.node.node import from_global_id
 from libs.auth import get_current_custom_user
 from libs.decorators import login_required
 from models.task import TaskModel
+from pydantic.main import BaseModel
 
+# class TaskSchema(BaseModel):
+#     class Config:
+#         orm_mode=True
 
 class TaskNode(SQLAlchemyObjectType):
     class Meta:
