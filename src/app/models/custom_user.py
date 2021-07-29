@@ -1,4 +1,4 @@
-from database.database import Base, engine
+from database.database import Base
 from sqlalchemy import Boolean, Column, String
 from sqlalchemy.orm import relationship
 
@@ -18,6 +18,10 @@ class CustomUserModel(Base):
     password = Column(String, nullable=False)
     full_name = Column(String(255))
     # 本人確認確認フラグ マジックリンクをクリックしたらTrueに更新する
-    is_verified = Column(Boolean, nullable=False, default=False)
+    is_verified = Column(Boolean, nullable=False)
+    # tasks = relationship('TaskModel', primaryjoin='CustomUserModel.ulid == foreign(TaskModel.id)') 
+    # tasks = relationship('TaskModel', backref=backref('tasks', uselist=True, cascade='delete,all'))
+    # tasks = relationship('TaskModel', back_populates='custom_users')
+    # tasks = relationship('TaskModel', backref='custom_users')
     tasks = relationship('TaskModel')
     refresh_token = relationship('RefreshTokenModel')

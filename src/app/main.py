@@ -7,9 +7,6 @@ from starlette.graphql import GraphQLApp
 from database.database import Base, db_session, engine
 from schemas.all_schemas import Mutation, Query
 
-path.append('../')
-from settings.envs import MAIL_CONFIGS
-
 app = FastAPI()
 
 # # Dependency

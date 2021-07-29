@@ -1,7 +1,7 @@
 import graphene
-from app.libs.auth import get_current_custom_user  # , send_email_background
 from graphene_sqlalchemy.fields import SQLAlchemyConnectionField
 from graphql_relay import from_global_id
+from libs.auth import get_current_custom_user  # , send_email_background
 from models.custom_user import CustomUserModel
 
 from .custom_user import (CreateCustomUser, CustomUserNode,
@@ -12,6 +12,8 @@ from .token import ReAuthentication, UpdateTokens
 
 
 class Query(graphene.ObjectType):
+    node = graphene.relay.Node.Field()
+
     current_user = graphene.Field(CustomUserNode)
     user = graphene.Field(CustomUserNode, id=graphene.NonNull(graphene.ID))
     all_users = SQLAlchemyConnectionField(CustomUserNode)

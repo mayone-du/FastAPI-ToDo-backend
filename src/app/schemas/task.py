@@ -1,17 +1,21 @@
 import graphene
-from app.libs.auth import get_current_custom_user
-from app.libs.decorators import login_required
-from app.models.task import TaskModel
 from database.database import db
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from graphql_relay.node.node import from_global_id
-from models import task
+from libs.auth import get_current_custom_user
+from libs.decorators import login_required
+from models.task import TaskModel
 
 
 class TaskNode(SQLAlchemyObjectType):
     class Meta:
-        model = task.TaskModel
+        model = TaskModel
         interfaces = (graphene.relay.Node,)
+
+# class TaskConnections(graphene.relay.Connection):
+#     class Meta:
+#         node = TaskNode
+
 
 
 # タスクの作成
@@ -27,9 +31,9 @@ class CreateTask(graphene.Mutation):
     def mutate(root, info, **kwargs):
         try:
             # 完了フラグはデフォルトでFalseに設定
-            db_task = task.TaskModel(title=kwargs.get('title'),
+            db_task = TaskModel(title=kwargs.get('title'),
                                     content=kwargs.get('content'),
-                                    task_creator=get_current_custom_user(info).ulid,
+                                    task_creator_ulid=get_current_custom_user(info).ulid,
                                     is_done=False)
             db.add(db_task)
             db.commit()

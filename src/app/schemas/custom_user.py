@@ -19,6 +19,10 @@ class CustomUserNode(SQLAlchemyObjectType):
         model = CustomUserModel
         interfaces = (graphene.relay.Node, )
 
+# class CustomUserConnections(graphene.relay.Connection):
+#     class Meta:
+#         node = CustomUserNode
+
 
 # ユーザーの作成と、作成されたメールアドレス宛にマジックリンク付きメールを送信
 class CreateCustomUser(graphene.Mutation):
@@ -38,7 +42,8 @@ class CreateCustomUser(graphene.Mutation):
             new_user = CustomUserModel(ulid=str(ULID()), username=kwargs.get('username'),
                                     email=kwargs.get('email'),
                                     # ユーザーが登録したパスワードをハッシュ化して保存
-                                    password=hash_data(kwargs.get('password')))
+                                    password=hash_data(kwargs.get('password')),
+                                    is_verified=False)
             db.add(new_user)
             db.commit()
             # アクセストークンを作成
@@ -118,6 +123,7 @@ class UpdateVerifyCustomUser(graphene.Mutation):
                 raise HTTPException(status_code=400, detail="既に本人確認済みです。")
             # ユーザーの本人確認フラグを更新
             current_user.is_verified = True
+            db.commit()
             
             refresh_token = create_refresh_token()
             refresh_token_exp = create_refresh_token_exp()
